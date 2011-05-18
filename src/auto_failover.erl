@@ -33,6 +33,8 @@
 
 %% API
 -export([start_link/0, enable/2, disable/0, reset_count/0]).
+%% For email alert notificatons
+-export([alert_key/1, alert_keys/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -94,6 +96,17 @@ disable() ->
 reset_count() ->
     gen_server:cast(?SERVER, reset_auto_failover_count).
 
+-spec alert_key(Code::integer()) -> atom().
+alert_key(?EVENT_NODE_AUTO_FAILOVERED) -> auto_failover_node;
+alert_key(?EVENT_MAX_REACHED) -> auto_failover_maximum_reached;
+alert_key(_) -> all.
+
+%% @doc Returns a list of all alerts that might send out an email notfication.
+-spec alert_keys() -> [atom()].
+alert_keys() ->
+    [auto_failover_node,
+     auto_failover_maximum_reached,
+     auto_failover_too_many_nodes_down].
 
 %%
 %% gen_server callbacks
