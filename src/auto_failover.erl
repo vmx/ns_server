@@ -25,12 +25,22 @@
 
 %% API
 -export([start_link/0, enable/2, disable/0, is_node_down/1]).
+%% For email alert notificatons
+-export([alert_key/1, alert_keys/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
 -define(SERVER, {global, ?MODULE}).
+%% @doc Fired when a node was auto-failovered.
+-define(EVENT_NODE_AUTO_FAILOVERED, 1).
+%% @doc Fired when the maximum number of nodes that can be auto-failovered
+%% was reached (and thus the auto-failover was disabled).
+-define(EVENT_MAX_REACHED, 2).
+%% @doc Fired when too many nodes (>nodes already failovered + nodes that are
+%% currently down) are down at the same time.
+-define(EVENT_TOO_MANY_NODES_DOWN, 3).
 
 -record(state, {
           %enabled=true :: true|false,
@@ -85,6 +95,18 @@ is_node_down(Node) ->
 %is_node_down(Node, Offset) ->
 %    gen_server:call(?SERVER, {is_node_down, Node, Offset}).
 
+-spec alert_key(Code::integer()) -> atom().
+alert_key(?EVENT_NODE_AUTO_FAILOVERED) -> auto_failover_node;
+alert_key(?EVENT_MAX_REACHED) -> auto_failover_maximum_reached;
+alert_key(?EVENT_TOO_MANY_NODES_DOWN) -> auto_failover_too_many_nodes_down;
+alert_key(_) -> all.
+
+%% @doc Returns a list of all alerts that might send out an email notfication.
+-spec alert_keys() -> [atom()].
+alert_keys() ->
+    [auto_failover_node,
+     auto_failover_maximum_reached,
+     auto_failover_too_many_nodes_down].
 
 %%
 %% gen_server callbacks
@@ -176,6 +198,13 @@ handle_info({tick, TS}, #state{max_nodes=Max}=State) ->
         % auto-failovered. This happens on major outages/net splits.
         % Therefore we disable auto-failover right now.
         false ->
+            ns_log:log(?MODULE, ?EVENT_TOO_MANY_NODES_DOWN,
+                       "Could not auto-failover nodes. "
+                       "Too many nodes went down at the same time,"
+                       "the maximum number of nodes that will be "
+                       "automatically failovered (~p) would have been "
+                       "reached. Disabling auto-failver now.~n",
+                       [Max]),
             handle_cast(disable_auto_failover, State)
     end;
 
@@ -202,14 +231,16 @@ failover(Node, Max) ->
     case length(failovered_nodes()) < Max of
         true ->
             ns_cluster_membership:failover(Node),
+            ns_log:log(?MODULE, ?EVENT_NODE_AUTO_FAILOVERED,
+                       "Node (~p) was automatically failovered.~n", [Node]),
             ok;
         false ->
-            ?log_warning(
-               "Could not auto-failover node (~p). "
-               "Maximum number of nodes that will be "
-               "automatically failovered (~p) is "
-               "reached. Disabling auto-failver now.",
-               [Node, Max]),
+            ns_log:log(?MODULE, ?EVENT_MAX_REACHED,
+                       "Could not auto-failover node (~p). "
+                       "Maximum number of nodes that will be "
+                       "automatically failovered (~p) is "
+                       "reached. Disabling auto-failver now.~n",
+                       [Node, Max]),
             {error, maximum_reached}
     end.
 

@@ -167,24 +167,26 @@ default() ->
 
                                                 % Modifiers: menelaus
                                                 % Listeners: ? possibly ns_log
-     {alerts, [{email, ""},
-               {email_alerts, false},
-               {email_server, [{user, undefined},
-                               {pass, undefined},
-                               {addr, undefined},
-                               {port, undefined},
+     {alerts, [{recipients, ["vmx@localhost"]},
+               {sender, "membase@localhost"},
+               {enabled, true},
+               {email_server, [{user, ""},
+                               {pass, ""},
+                               {host, "localhost"},
+                               {port, 25},
                                {encrypt, false}]},
-               {alerts, [server_down,
-                         server_unresponsive,
-                         server_up,
-                         server_joined,
-                         server_left,
-                         bucket_created,
-                         bucket_deleted,
-                         bucket_auth_failed]}
+               {alerts, [auto_failover_node,
+                         auto_failover_maximum_reached,
+                         auto_failover_too_many_nodes_down]}
+                         %server_up,
+                         %server_joined,
+                         %server_left,
+                         %bucket_created,
+                         %bucket_deleted,
+                         %bucket_auth_failed]}
               ]},
      {replication, [{enabled, true}]},
-     {auto_failover, [{enabled, false},
+     {auto_failover, [{enabled, true},
                       % age is the time (in seconds) a node needs to be down
                       % before it is automatically faileovered
                       {age, 60},
