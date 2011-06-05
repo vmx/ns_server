@@ -32,7 +32,7 @@
 -include("ns_common.hrl").
 
 %% API
--export([start_link/0, enable/2, disable/0]).
+-export([start_link/0, enable/2, disable/0, reset_count/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -89,6 +89,11 @@ enable(Age, Max) ->
 disable() ->
     gen_server:cast(?SERVER, disable_auto_failover).
 
+%% @doc Reset the number of nodes that were auto-failovered to zero
+-spec reset_count() -> ok.
+reset_count() ->
+    gen_server:cast(?SERVER, reset_auto_failover_count).
+
 
 %%
 %% gen_server callbacks
@@ -131,6 +136,12 @@ handle_cast(disable_auto_failover, #state{tick_ref=Ref}=State) ->
     ?log_info("disable_auto_failover: ~p", [State]),
     ns_pubsub:unsubscribe(ns_tick_event, Ref),
     State2 = State#state{tick_ref=nil},
+    make_state_persistent(State2),
+    {noreply, State2};
+
+handle_cast(reset_auto_failover_count, State) ->
+    ?log_info("reset auto_failover count: ~p", [State]),
+    State2 = State#state{count=0,nodes_down=[]},
     make_state_persistent(State2),
     {noreply, State2};
 
@@ -182,8 +193,7 @@ failover(Node, Count, Max) ->
             ns_log:log(?MODULE, ?EVENT_MAX_REACHED,
                        "Could not auto-failover node (~p). "
                        "Maximum number of nodes that will be "
-                       "automatically failovered (~p) is "
-                       "reached. Disabling auto-failver now.~n",
+                       "automatically failovered (~p) is reached.~n",
                        [Node, Max]),
             {error, maximum_reached}
     end.
