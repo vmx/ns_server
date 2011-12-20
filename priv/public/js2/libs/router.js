@@ -10,6 +10,7 @@ var Router = (function() {
   var WILD_MATCHER = (/\*([\w\d]+)/g);
   var WILD_REPLACER = "(.*?)";
 
+  var preFun;
   var lastPage;
   var history = [];
 
@@ -22,6 +23,10 @@ var Router = (function() {
   function init(parent) {
     $(window).bind("hashchange", urlChanged).trigger("hashchange");
     $(document).bind("submit", formSubmitted);
+  }
+
+  function pre(fun) {
+    preFun = fun;
   }
 
   function back() {
@@ -134,6 +139,13 @@ var Router = (function() {
       }
 
       args.unshift(opq);
+
+      if (preFun) {
+        if (preFun(match) === false) {
+          return;
+        }
+      }
+
       if (match.details.load.load) {
         match.details.load.load.apply(match.details.load, args);
       } else {
@@ -187,6 +199,7 @@ var Router = (function() {
   }
 
   return {
+    pre: pre,
     previous : previous,
     refresh : refresh,
     forward : forward,
@@ -217,6 +230,12 @@ var View = (function() {
 
     var source   = $('#' + this.template + '-tpl').html();
     var template = Handlebars.compile(source);
+
+    if (this.preRender) {
+      if (this.preRender() === false) {
+        return;
+      }
+    }
 
     to.empty().append(template(this));
 

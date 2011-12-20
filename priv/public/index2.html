@@ -109,8 +109,28 @@
 
     </script>
 
+    <script type="text/x-handlebars" id="login-tpl">
+      <form id="login_form" class="auth_form block" action="#/login/">
+        <fieldset>
+          <ul>
+            <li>
+              <label for="login_inp">Username:</label>
+              <input type="text" name="username" id="login_inp" class="inp" />
+            </li>
+            <li>
+              <label for="password2_inp">Password:</label>
+              <input type="password" name="password" id="password2_inp" class="inp" />
+            </li>
+          </ul>
+          <input type="submit" value="Sign In" class="submit" />
+        </fieldset>
+      </form>
+    </script>
+
+
   </body>
 
+  <script src="/js2/libs/base64.js"></script>
   <script src="/js2/libs/jquery-1.7.1.min.js"></script>
   <script src="/js2/libs/underscore-1.1.6.js"></script>
   <script src="/js2/libs/handlebars-1.0.0.beta.4.js"></script>
