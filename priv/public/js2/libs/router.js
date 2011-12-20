@@ -1,3 +1,8 @@
+// This mostly needs a rewrite, its got a bunch of stuff in it that doesnt need
+// to be there as it was originally hacked together quite terribly for mobile stuff
+// the way we now to view rendering is a massive improvment and means most of this
+// code can be thrown away
+
 var Router = (function() {
 
   var PATH_REPLACER = "([^\/]+)";
@@ -192,6 +197,47 @@ var Router = (function() {
     init    : init,
     matchesCurrent : matchesCurrent,
     params : params
+  };
+
+})();
+
+
+// This I hacked together pretty quickly after seeing the ember views,
+// the view inheritance I am no so sure about and the extend method is
+// most definitely ugly
+var View = (function() {
+
+  this.renderTo = function(to) {
+
+    if (this.parent) {
+      this.parent.render();
+    }
+
+    to = $(to);
+
+    var source   = $('#' + this.template + '-tpl').html();
+    var template = Handlebars.compile(source);
+
+    to.empty().append(template(this));
+
+    if (this.postRender) {
+      this.postRender();
+    }
+    currentView = this;
+  };
+
+  this.render = function() {
+    this.renderTo(this.container);
+  };
+
+  this.extend = function(obj) {
+    return $.extend({}, this, obj);
+  };
+
+  return {
+    extend: this.extend,
+    renderTo: this.renderTo,
+    render: this.render
   };
 
 })();
