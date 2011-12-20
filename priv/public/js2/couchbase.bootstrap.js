@@ -1,56 +1,69 @@
 var View = (function() {
 
-  var currentView;
-
   this.renderTo = function(to) {
+
+    if (this.parent) {
+      this.parent.render();
+    }
+
+    to = $(to);
+
     var source   = $('#' + this.template + '-tpl').html();
     var template = Handlebars.compile(source);
+
     to.empty().append(template(this));
+
     if (this.postRender) {
-      this.postRender(currentView, this);
+      this.postRender();
     }
     currentView = this;
   }
 
   this.render = function() {
-    this.renderTo($(this.container));
+    this.renderTo(this.container);
   }
 
   this.extend = function(obj) {
     return $.extend({}, this, obj);
   }
 
-  this.currentView = function() {
-    return currentView;
-  }
-
   return {
     extend: this.extend,
     renderTo: this.renderTo,
-    render: this.render,
-    currentView: this.currentView
+    render: this.render
   };
 
 })();
 
 
+// This is the main layout as a template
+var MainView = View.extend({
+  container: '#global_wrapper',
+  template: 'main'
+});
+
+
+// This is a object for subviews of the main layout
 var AppView = View.extend({
 
-  container: $('#content'),
+  currentPage: null,
+  parent: MainView,
+  container: '#content',
 
+  // Now that we have basic template inheritance, this can be redone
   postRender: function(oldView, newView) {
 
-    if (oldView && oldView.name) {
-      $(document.body).removeClass('page-' + oldView.name);
+    if (AppView.currentPage) {
+      $(document.body).removeClass('page-' + AppView.currentPage);
     }
 
-    if (newView.name) {
-      $(document.body).addClass('page-' + newView.name);
+    if (this.name) {
+      $(document.body).addClass('page-' + this.name);
+      AppView.currentPage = this.name;
     }
   }
 
 });
-
 
 var FourOhFourView = AppView.extend({
   template: 'fourohfour'
