@@ -28,16 +28,16 @@
 
       <nav>
         <ul>
-          <li><a href="#/cluster/" id="cluster-link">Cluster Overview</a></li>
-          <li class="current"><a href="#/server/">Server Nodes</a></li>
-          <li><a href="#/buckets/">Data Buckets</a></li>
-          <li><a href="#/views/">Views</a></li>
-          <li><a href="#/log/">Log</a></li>
-          <li><a href="#/settings/">Settings</a></li>
+          <li class="cluster"><a href="#/cluster/" id="cluster-link">Cluster Overview</a></li>
+          <li class="server"><a href="#/server/">Server Nodes</a></li>
+          <li class="buckets"><a href="#/buckets/">Data Buckets</a></li>
+          <li class="views"><a href="#/views/">Views</a></li>
+          <li class="logs"><a href="#/logs/">Logs</a></li>
+          <li class="settings"><a href="#/settings/">Settings</a></li>
         </ul>
       </nav>
 
-      <section>
+      <section id="content">
       </section>
 
       <div id="clearfooter"></div>
@@ -53,10 +53,63 @@
       </div>
     </footer>
 
+
+    <script type="text/x-handlebars" id="fourohfour-tpl">
+      <h1>Page not found</h1>
+    </script>
+
+
+    <script type="text/x-handlebars" id="cluster-tpl">
+      <h1>Cluster Overview</h1>
+
+      <div class="shadow-box">
+        <h1>Cluster</h1>
+        <section>Some stuff</section>
+      </div>
+
+      <div class="shadow-box">
+        <h1>Buckets</h1>
+        <section>Some stuff</section>
+      </div>
+
+      <div class="shadow-box">
+        <h1>Server</h1>
+        <section>Some stuff</section>
+      </div>
+
+    </script>
+
+
+    <script type="text/x-handlebars" id="logs-tpl">
+
+      <a href="/diag" class="diag">Generate Diagnostics Report</a>
+      <h1>Log</h1>
+
+      <table>
+        <tr>
+          <th>Event</th>
+          <th>Module Code</th>
+          <th>Server Node</th>
+          <th>Time</th>
+        </tr>
+        {{#each logs}}
+        <tr>
+          <td>{{text}}</td>
+          <td>{{module}}</td>
+          <td>{{node}}</td>
+          <td>{{tstamp}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+    </script>
+
   </body>
 
   <script src="/js2/libs/jquery-1.7.1.min.js"></script>
-  <script src="/js2/libs/ember-0.9.min.js"></script>
+  <script src="/js2/libs/underscore-1.1.6.js"></script>
+  <script src="/js2/libs/handlebars-1.0.0.beta.4.js"></script>
+  <script src="/js2/libs/router.js"></script>
 
   <script src="/js2/couchbase.bootstrap.js"></script>
 

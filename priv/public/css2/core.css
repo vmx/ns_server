@@ -1,12 +1,13 @@
 * {
-padding: 0;
-margin: 0;
+    padding: 0;
+    margin: 0;
 }
 
 html, body {
     margin: 0;
     padding: 0;
     height: 100%;
+    color: #616062;
 }
 
 body {
@@ -42,7 +43,8 @@ nav li:hover {
     background:url('../images/active_hover_bg.png') repeat-x;
 }
 
-nav li.current {
+.page-logs .logs, .page-servers .servers, .page-buckets .buckets,
+.page-views .views, .page-settings .settings, .page-cluster .cluster {
     background: url('../images/active_bg.png') no-repeat center;
 }
 
@@ -120,4 +122,56 @@ footer {
 #footer-inner {
     width: 960px;
     margin: 0 auto;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+    box-shadow: 0px 0px 3px #AAA;
+}
+
+h1 {
+    font-weight: normal;
+    font-size: 20px;
+    padding: 0 0 15px 0;
+}
+
+th {
+    color: #F2692D;
+    border: 1px solid #CCC;
+    background: none #E6E7E8;
+    padding: 15px 11px;
+    text-align: left;
+}
+
+td {
+    padding: 15px 11px;
+    border: 1px solid #D9DCE0;
+    background: none white;
+}
+
+
+#content {
+    width: 960px;
+    margin: 0px auto;
+    padding-top: 12px;
+    font-size: 12px;
+}
+
+.diag { float: right; line-height: 20px; }
+
+.shadow-box {
+    box-shadow: 0px 0px 5px #AAA;
+    background: none #EEEEEF;
+    margin-bottom: 20px;
+}
+
+.shadow-box section {
+    padding: 15px;
+}
+
+.shadow-box h1 {
+    background: url(../images/bg_h2.gif) 0 100% repeat-x #E3E3E4;
+    padding: 5px 15px;
 }
