@@ -52,6 +52,18 @@ nav li:hover {
     background: url('../images/active_bg.png') no-repeat center;
 }
 
+.page-login nav, .page-login #logout-form {
+    display:none;
+}
+
+.page-login header {
+    box-shadow: 0 0 5px #333;
+}
+
+.page-login {
+    background: #F0EEE7;
+}
+
 nav a {
     display: block;
     text-decoration: none;
@@ -200,7 +212,7 @@ td {
     -webkit-box-shadow: 1px 1px 10px #999;
     box-shadow: 1px 1px 10px #999;
     padding: 10px 0;
-    margin: 30px auto;
+    margin: 85px auto;
 }
 
 .auth_form ul {

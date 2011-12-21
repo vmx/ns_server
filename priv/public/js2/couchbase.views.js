@@ -27,33 +27,6 @@ var AppView = View.extend({
 
 });
 
-var LoginView = AppView.extend({
-  template: 'login'
-});
-
-var FourOhFourView = AppView.extend({
-  template: 'fourohfour'
-});
-
-var ClusterView = AppView.extend({
-  name: 'cluster',
-  template: 'cluster'
-});
-
-var ServersView = AppView.extend({
-  name: 'servers',
-  template: 'servers'
-});
-
-var BucketsView = AppView.extend({
-  name: 'buckets',
-  template: 'buckets'
-});
-
-var ViewsView = AppView.extend({
-  name: 'views',
-  template: 'views'
-});
 
 var LogView = AppView.extend({
 
@@ -75,10 +48,14 @@ var LogView = AppView.extend({
       LogView.render();
     });
   }
-
 });
 
-var SettingsView = AppView.extend({
-  name: 'settings',
-  template: 'settings'
-});
+
+var LoginView = AppView.extend({name: 'login', template: 'login'});
+var FourOhFourView = AppView.extend({template: 'fourohfour'});
+var ClusterView = AppView.extend({name: 'cluster', template: 'cluster'});
+var ServersView = AppView.extend({name: 'servers', template: 'servers'});
+var BucketsView = AppView.extend({name: 'buckets', template: 'buckets'});
+var ViewsView = AppView.extend({name: 'views', template: 'views'});
+var SettingsView = AppView.extend({name: 'settings', template: 'settings'});
+
