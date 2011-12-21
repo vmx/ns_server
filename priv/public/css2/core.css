@@ -178,6 +178,9 @@ td {
     background: none white;
 }
 
+.lined_tab tr:nth-child(2n+1) td {
+    background-color: #F5F5F7;
+}
 
 #content {
     width: 960px;
