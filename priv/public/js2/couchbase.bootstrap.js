@@ -27,9 +27,18 @@ var User = {
   },
 
   login: function(e, form) {
+
+    // Currently this doesnt do anything as the submit button
+    // is an image, change that
+    var $login_btn = $(e.target).find('input[type=submit]')
+      .text('Logging in').attr('disabled', true);
+
     var auth = 'Basic ' + Base64.encode(form.username + ':' + form.password);
     if (this.doLogin(auth)) {
       Router.refresh();
+    } else {
+      $login_btn.removeAttr('disabled').text('Sign In');
+      $(e.target).find('#login-failed').show();
     }
   },
 
