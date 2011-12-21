@@ -1,3 +1,21 @@
+// Basic wrapper for localStorage
+var localJSON = (function(){
+  if (!localStorage) {
+    return false;
+  }
+  return {
+    set:function(prop, val) {
+      localStorage.setItem(prop, JSON.stringify(val));
+    },
+    get:function(prop, def) {
+      return JSON.parse(localStorage.getItem(prop) || 'false') || def;
+    },
+    remove:function(prop) {
+      localStorage.removeItem(prop);
+    }
+  };
+})();
+
 
 // This is the main layout as a template
 var MainView = View.extend({
@@ -68,27 +86,24 @@ var LogView = AppView.extend({
 var User = {
 
   requiresLogin: true,
-  username: null,
-  password: null,
+  auth: null, //localJSON.get('auth', null),
 
-  credentials: function() {
-    return {username: this.username, password: this.password};
+  autoLogin: function() {
+    return this.login(localJSON.get('auth'));
   },
 
-  load: function(_, e, form) {
+  login: function(auth) {
 
     var self = this;
-
-    this.username = form.username;
-    this.password = form.password;
+    this.auth = auth;
 
     function cb(data, status) {
+
       if (status === 'success') {
+        localJSON.set('auth', self.auth);
         self.requiresLogin = false;
-        Router.refresh();
       } else {
-        self.username = null;
-        self.password = null;
+        self.auth = null;
       }
     }
 
@@ -101,6 +116,14 @@ var User = {
       error: cb
     });
 
+    return this.auth !== null;
+  },
+
+  load: function(_, e, form) {
+    var auth = 'Basic ' + Base64.encode(form.username + ':' + form.password);
+    if (this.login(auth)) {
+      Router.refresh();
+    }
   }
 
 };
@@ -113,17 +136,15 @@ $.ajaxSetup({
     // NOTE: we're not sending auth header for capi requests because
     // at this point CAPI is authless and sending auth header only
     // confuses it
-    var user = User.credentials();
-
-    if (user && !(/^\/couchBase/.test(options.url))) {
-      var auth = 'Basic ' + Base64.encode(user.username + ':' + user.password);
-      xhr.setRequestHeader('Authorization', auth);
+    if (User.auth && !(/^\/couchBase/.test(options.url))) {
+      xhr.setRequestHeader('Authorization', User.auth);
     }
 
     xhr.setRequestHeader('invalid-auth-response', 'on');
     xhr.setRequestHeader('Cache-Control', 'no-cache');
     xhr.setRequestHeader('Pragma', 'no-cache');
   }
+
 });
 
 var App = (function () {
@@ -132,6 +153,10 @@ var App = (function () {
 
     if (args.details.path === '#/login/') {
       return true;
+    }
+
+    if (User.requiresLogin && localJSON.get('auth', null) !== null) {
+      User.autoLogin();
     }
 
     if (User.requiresLogin) {
