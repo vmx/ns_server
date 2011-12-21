@@ -104,8 +104,14 @@ var App = (function () {
   // These should point to particular functions, not a plain object
   Router.post('#/login/', User);
 
-  Router.get('#/logs/', LogView);
   Router.get('#/cluster/', ClusterView);
+  Router.get('#/servers/', ServersView);
+  Router.get('#/buckets/', BucketsView);
+  Router.get('#/views/', ViewsView);
+  Router.get('#/logs/', LogView);
+  Router.get('#/settings/:section/', SettingsView);
+  Router.get('#/settings/', SettingsView);
+
   Router.get(/.*/, FourOhFourView);
 
   Router.init();

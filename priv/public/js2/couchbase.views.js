@@ -40,6 +40,20 @@ var ClusterView = AppView.extend({
   template: 'cluster'
 });
 
+var ServersView = AppView.extend({
+  name: 'servers',
+  template: 'servers'
+});
+
+var BucketsView = AppView.extend({
+  name: 'buckets',
+  template: 'buckets'
+});
+
+var ViewsView = AppView.extend({
+  name: 'views',
+  template: 'views'
+});
 
 var LogView = AppView.extend({
 
@@ -62,4 +76,9 @@ var LogView = AppView.extend({
     });
   }
 
+});
+
+var SettingsView = AppView.extend({
+  name: 'settings',
+  template: 'settings'
 });

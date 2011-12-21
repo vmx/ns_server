@@ -33,7 +33,7 @@
       <nav>
         <ul>
           <li class="cluster"><a href="#/cluster/" id="cluster-link">Cluster Overview</a></li>
-          <li class="server"><a href="#/server/">Server Nodes</a></li>
+          <li class="servers"><a href="#/servers/">Server Nodes</a></li>
           <li class="buckets"><a href="#/buckets/">Data Buckets</a></li>
           <li class="views"><a href="#/views/">Views</a></li>
           <li class="logs"><a href="#/logs/">Logs</a></li>
@@ -85,6 +85,19 @@
     </script>
 
 
+    <script type="text/x-handlebars" id="servers-tpl">
+      <h1>Servers</h1>
+    </script>
+
+
+    <script type="text/x-handlebars" id="buckets-tpl">
+      <h1>Data Buckets</h1>
+    </script>
+
+    <script type="text/x-handlebars" id="views-tpl">
+      <h1>Views</h1>
+    </script>
+
     <script type="text/x-handlebars" id="logs-tpl">
 
       <a href="/diag" class="diag">Generate Diagnostics Report</a>
@@ -108,6 +121,11 @@
       </table>
 
     </script>
+
+    <script type="text/x-handlebars" id="settings-tpl">
+      <h1>Settings</h1>
+    </script>
+
 
     <script type="text/x-handlebars" id="login-tpl">
       <form id="login_form" class="auth_form" action="#/login/">
