@@ -23,10 +23,24 @@ var User = {
   auth: null,
 
   autoLogin: function() {
-    return this.login(localJSON.get('auth'));
+    return this.doLogin(localJSON.get('auth'));
   },
 
-  login: function(auth) {
+  login: function(e, form) {
+    var auth = 'Basic ' + Base64.encode(form.username + ':' + form.password);
+    if (this.doLogin(auth)) {
+      Router.refresh();
+    }
+  },
+
+  logout: function(e, form) {
+    this.auth = null;
+    this.requiresLogin = true;
+    localJSON.remove('auth');
+    Router.refresh();
+  },
+
+  doLogin: function(auth) {
 
     var self = this;
     this.auth = auth;
@@ -51,15 +65,7 @@ var User = {
     });
 
     return this.auth !== null;
-  },
-
-  load: function(_, e, form) {
-    var auth = 'Basic ' + Base64.encode(form.username + ':' + form.password);
-    if (this.login(auth)) {
-      Router.refresh();
-    }
   }
-
 };
 
 
@@ -100,8 +106,8 @@ var App = (function () {
 
   });
 
-
-  Router.post('#/login/', User, User.load);
+  Router.post('#/login/', User, User.login);
+  Router.post('#/logout/', User, User.logout);
 
   Router.get('#/cluster/', ClusterView, ClusterView.render);
   Router.get('#/servers/', ServersView, ServersView.render);

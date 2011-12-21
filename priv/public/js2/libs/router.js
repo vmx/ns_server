@@ -1,9 +1,9 @@
 var Router = (function() {
 
-  var PATH_MATCHER = (/:([\w\d]+)/g);
+  var PATH_MATCHER = /:([\w\d]+)/g;
   var PATH_REPLACER = "([^\/]+)";
 
-  var WILD_MATCHER = (/\*([\w\d]+)/g);
+  var WILD_MATCHER = /\*([\w\d]+)/g;
   var WILD_REPLACER = "(.*?)";
 
   var preRouteHook;
@@ -18,8 +18,8 @@ var Router = (function() {
 
   // I would like this namespaced, but hashchange needs to be bound to window
   function init() {
-    $(window).bind("hashchange", hashChanged).trigger("hashchange");
-    $(window).bind("submit", formSubmitted);
+    $(window).bind('hashchange', hashChanged).trigger('hashchange');
+    $(window).bind('submit', formSubmitted);
   }
 
   // Triggered by hashchange events, starts new routing process
@@ -34,11 +34,11 @@ var Router = (function() {
   // action is 'routable' (starts with a #)
   function formSubmitted(e) {
 
-    var action = e.target.getAttribute("action");
+    var action = e.target.getAttribute('action');
 
-    if (action[0] === "#") {
+    if (action[0] === '#') {
       e.preventDefault();
-      trigger("POST", action, e, serialize(e.target));
+      trigger('POST', action, e, serialize(e.target));
     }
   }
 
@@ -74,8 +74,8 @@ var Router = (function() {
   // If the path definition is a string, expand to a regular expression
   function toRegex(path) {
     if (path.constructor == String) {
-      var regex = "^" + path.replace(PATH_MATCHER, PATH_REPLACER)
-        .replace(WILD_MATCHER, WILD_REPLACER) +"$";
+      var regex = '^' + path.replace(PATH_MATCHER, PATH_REPLACER)
+        .replace(WILD_MATCHER, WILD_REPLACER) + '$';
       return new RegExp(regex);
     } else {
       return path;
@@ -84,7 +84,7 @@ var Router = (function() {
 
 
   // This is where everything happens
-  function trigger(verb, url, e, data) {
+  function trigger(verb, url, evt, data) {
 
     var routeObj = matchPath(verb, url);
 
@@ -94,14 +94,14 @@ var Router = (function() {
 
       var args = [];
 
-      if (verb === "POST") {
+      if (verb === 'POST') {
         args.unshift(data);
-        args.unshift(ctx);
+        args.unshift(evt);
       }
 
       // If the route we are leaving has provided a teardown callback
       // then run it
-      if (verb === "GET" && lastRoute && lastRoute.context.unload) {
+      if (verb === 'GET' && lastRoute && lastRoute.context.unload) {
         lastRoute.context.unload.apply(lastRoute.context, []);
       }
 
@@ -115,7 +115,7 @@ var Router = (function() {
 
       routeObj.fun.apply(routeObj.context, args);
 
-      if (verb === "GET") {
+      if (verb === 'GET') {
         lastRoute = routeObj;
       }
     }
