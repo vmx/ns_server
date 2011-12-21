@@ -85,7 +85,7 @@ var App = (function () {
 
   Router.pre(function(args) {
 
-    if (args.details.path === '#/login/') {
+    if (args.path === '#/login/') {
       return true;
     }
 
@@ -101,18 +101,17 @@ var App = (function () {
   });
 
 
-  // These should point to particular functions, not a plain object
-  Router.post('#/login/', User);
+  Router.post('#/login/', User, User.load);
 
-  Router.get('#/cluster/', ClusterView);
-  Router.get('#/servers/', ServersView);
-  Router.get('#/buckets/', BucketsView);
-  Router.get('#/views/', ViewsView);
-  Router.get('#/logs/', LogView);
-  Router.get('#/settings/:section/', SettingsView);
-  Router.get('#/settings/', SettingsView);
+  Router.get('#/cluster/', ClusterView, ClusterView.render);
+  Router.get('#/servers/', ServersView, ServersView.render);
+  Router.get('#/buckets/', BucketsView, BucketsView.render);
+  Router.get('#/views/', ViewsView, ViewsView.render);
+  Router.get('#/logs/', LogView, LogView.load);
+  Router.get('#/settings/:section/', SettingsView, SettingsView.render);
+  Router.get('#/settings/', SettingsView, SettingsView.render);
 
-  Router.get(/.*/, FourOhFourView);
+  Router.get(/.*/, FourOhFourView, FourOhFourView.render);
 
   Router.init();
 

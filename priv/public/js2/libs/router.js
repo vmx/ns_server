@@ -1,178 +1,138 @@
-// This mostly needs a rewrite, its got a bunch of stuff in it that doesnt need
-// to be there as it was originally hacked together quite terribly for mobile stuff
-// the way we now to view rendering is a massive improvment and means most of this
-// code can be thrown away
-
 var Router = (function() {
 
-  var PATH_REPLACER = "([^\/]+)";
   var PATH_MATCHER = (/:([\w\d]+)/g);
+  var PATH_REPLACER = "([^\/]+)";
+
   var WILD_MATCHER = (/\*([\w\d]+)/g);
   var WILD_REPLACER = "(.*?)";
 
-  var preFun;
-  var lastPage;
+  var preRouteHook;
+
+  var lastRoute;
   var history = [];
 
-  var hashparams = {};
-  var params = {};
+  var routes = {
+    GET: [],
+    POST: []
+  };
 
-  var routes = {GET: [], POST: []};
-
-  // Needs namespaced and decoupled and stuff
-  function init(parent) {
-    $(window).bind("hashchange", urlChanged).trigger("hashchange");
-    $(document).bind("submit", formSubmitted);
+  // I would like this namespaced, but hashchange needs to be bound to window
+  function init() {
+    $(window).bind("hashchange", hashChanged).trigger("hashchange");
+    $(window).bind("submit", formSubmitted);
   }
 
-  function pre(fun) {
-    preFun = fun;
+  // Triggered by hashchange events, starts new routing process
+  function hashChanged() {
+    var url = "#" + (document.location.hash.slice(1) || "");
+    history.push(url);
+    trigger("GET", url);
   }
 
-  function back() {
-    history.pop(); // current url
-    if (history.length > 0) {
-      document.location.href = history.pop();
-    } else {
-      document.location.href = "#/";
+
+  // Triggered by form submission, starts new routing process if the form
+  // action is 'routable' (starts with a #)
+  function formSubmitted(e) {
+
+    var action = e.target.getAttribute("action");
+
+    if (action[0] === "#") {
+      e.preventDefault();
+      trigger("POST", action, e, serialize(e.target));
     }
   }
 
-  function get(path, cb) {
-    var obj = {path:path, load:cb};
-    routes.GET.push(obj);
-    return {
-      unload: function(unloadCallback) {
-        obj.unload = unloadCallback;
-      },
-      opts: function(opts) {
-        obj.opts = opts;
-      }
-    };
+
+  // Define a function that is executed prior to any invoking a route, if the
+  // fun returns false it will cancel the route invokation
+  function pre(fun) {
+    preRouteHook = fun;
   }
 
-  function post(path, cb) {
-    var obj = {path:path, load:cb};
-    routes.POST.push(obj);
-    return {
-      unload: function(unloadCallback) {
-        obj.unload = unloadCallback;
-      },
-      opts: function(opts) {
-        obj.opts = opts;
-      }
-    };
+
+  // Provide a fun to be called
+  function get(path, context, fun) {
+    routes.GET.push({
+      rePath: toRegex(path),
+      path: path,
+      context: context,
+      fun: fun
+    });
   }
 
+
+  function post(path, context, fun) {
+    routes.POST.push({
+      rePath: toRegex(path),
+      path: path,
+      context: context,
+      fun: fun
+    });
+  }
+
+
+  // If the path definition is a string, expand to a regular expression
   function toRegex(path) {
     if (path.constructor == String) {
-      return new RegExp("^" + path.replace(PATH_MATCHER, PATH_REPLACER)
-                          .replace(WILD_MATCHER, WILD_REPLACER) +"$");
+      var regex = "^" + path.replace(PATH_MATCHER, PATH_REPLACER)
+        .replace(WILD_MATCHER, WILD_REPLACER) +"$";
+      return new RegExp(regex);
     } else {
       return path;
     }
   }
 
-  function refresh() {
-    urlChanged(null, {"router": {"refresh": true}});
-  }
 
-  function urlChanged(e, opts) {
-    opts = opts || {};
-    history.push("#" + (document.location.hash.slice(1) || ""));
-    trigger("GET", "#" + (document.location.hash.slice(1) || ""), null, null, opts);
-  }
+  // This is where everything happens
+  function trigger(verb, url, e, data) {
 
-  function forward(url) {
-    history.pop(); // current url
-    history.push(url);
-    trigger("GET", url);
-  }
+    var routeObj = matchPath(verb, url);
 
-  function formSubmitted(e) {
+    // If there isnt a match we do nothing, if the user wants a 404 they can
+    // just add a catchall route
+    if (routeObj) {
 
-    e.preventDefault();
-    var action = e.target.getAttribute("action");
-
-    if (action[0] === "#") {
-      trigger("POST", action, e, serialize(e.target));
-    }
-  }
-
-  function trigger(verb, url, ctx, data, opts) {
-
-    opts = opts || {};
-    hashparams = [];
-
-    $.each((url.split("?")[1] || "").split("&"), function(i, param) {
-      var tmp = param.split("=");
-      hashparams[tmp[0]] = tmp[1];
-    });
-
-    var match = matchPath(verb, url.split("?")[0]);
-
-    if (match) {
-
-      var args = match.match.slice(1);
+      var args = [];
 
       if (verb === "POST") {
         args.unshift(data);
         args.unshift(ctx);
       }
 
-      if (lastPage && lastPage.load.unload && verb === "GET") {
-        lastPage.load.unload.apply(lastPage.load, args);
+      // If the route we are leaving has provided a teardown callback
+      // then run it
+      if (verb === "GET" && lastRoute && lastRoute.context.unload) {
+        lastRoute.context.unload.apply(lastRoute.context, []);
       }
 
-      var opq = $.extend({}, opts, match.details.opts);
-      var isBack = (history.length > 2 && url === history[history.length-3]);
-
-      if (isBack) {
-        opq.router = opq.router || {};
-        opq.router.back = true;
-        history.length -= 2;
+      // prefun allows the user to provide a function to that can
+      // validate the request and cancel if needed (authorisation for example)
+      // it would probably be better to do webmachine / cgi style routing, but
+      // this works for now
+      if (preRouteHook && preRouteHook(routeObj) === false) {
+        return;
       }
 
-      if (match.match[0] === "#/") {
-        opq.router = opq.router || {};
-        opq.router.home = true;
-      }
-
-      args.unshift(opq);
-
-      if (preFun) {
-        if (preFun(match) === false) {
-          return;
-        }
-      }
-
-      if (match.details.load.load) {
-        match.details.load.load.apply(match.details.load, args);
-      } else {
-        match.details.load.render.apply(match.details.load, args);
-      }
+      routeObj.fun.apply(routeObj.context, args);
 
       if (verb === "GET") {
-        lastPage = match.details;
+        lastRoute = routeObj;
       }
     }
   }
 
-  function matchesCurrent(needle) {
-    return current().match(toRegex(needle));
-  }
-
+  // loop through the routes and find the first that matches current path
   function matchPath(verb, path) {
-    var i, tmp, arr = routes[verb];
-    for (i = 0; i < arr.length; i++) {
-      tmp = path.match(toRegex(arr[i].path));
-      if (tmp) {
-        return {"match":tmp, "details":arr[i]};
+    for (var i = 0; i < routes[verb].length; i++) {
+      var routeObj = routes[verb][i];
+      if (path.match(routeObj.rePath)) {
+        return routeObj;
       }
     }
     return false;
   }
 
+  // Serialize the form results into an object
   function serialize(obj) {
     var o = {};
     var a = $(obj).serializeArray();
@@ -189,27 +149,12 @@ var Router = (function() {
     return o;
   }
 
-  function previous(x) {
-    x = x || 0;
-    return history.length > (1 + x) ? history[history.length - (2 + x)]: false;
-  }
-
-  function current() {
-    return history[history.length - 1];
-  }
-
   return {
+    refresh: hashChanged,
     pre: pre,
-    previous : previous,
-    refresh : refresh,
-    forward : forward,
-    current : current,
-    back    : back,
-    get     : get,
-    post    : post,
-    init    : init,
-    matchesCurrent : matchesCurrent,
-    params : params
+    get: get,
+    post: post,
+    init: init
   };
 
 })();
