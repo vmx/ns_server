@@ -136,3 +136,8 @@ var App = (function () {
   Router.init();
 
 })();
+
+
+Handlebars.registerHelper('date', function(date) {
+  return Utils.formatLogTStamp(date);
+});
