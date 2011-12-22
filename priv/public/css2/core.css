@@ -41,7 +41,7 @@ nav {
 
 nav ul {
     list-style: none;
-    width: 960px;
+    width: 940px;
     margin: auto;
 }
 
@@ -86,7 +86,7 @@ nav #cluster-link {
 
 #header-inner {
     padding-top: 15px;
-    width: 960px;
+    width: 940px;
     margin: 0 auto;
     position: relative;
 }
@@ -154,7 +154,7 @@ footer {
 }
 
 #footer-inner {
-    width: 960px;
+    width: 940px;
     margin: 0 auto;
 }
 
@@ -186,7 +186,7 @@ h1 {
 }
 
 #content {
-    width: 960px;
+    width: 940px;
     margin: 0px auto;
     padding-top: 12px;
     font-size: 12px;
