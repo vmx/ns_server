@@ -50,8 +50,8 @@ var LogView = AppView.extend({
   }
 });
 
-var StorageOverView = View.extend({template: 'storage-overview'});
-var RamOverView = StorageOverView.extend({data: {
+var GuageView = View.extend({template: 'gauge'});
+var RamOverView = GuageView.extend({data: {
   title: "RAM Overview",
   neTitle: 'Total Allocated',
   nwTitle: 'Total in Cluster',
@@ -59,7 +59,7 @@ var RamOverView = StorageOverView.extend({data: {
   sTitle: 'Unused',
   swTitle: 'Unallocated'
 }});
-var DiskOverView = StorageOverView.extend({data: {
+var DiskOverView = GuageView.extend({data: {
   title: "Disk Overview",
   neTitle: 'Usable Free Space',
   nwTitle: 'Total Cluster Storage',
@@ -100,8 +100,8 @@ var ClusterView = AppView.extend({
 
     }
 
-    this.data.ramOverview = RamOverView.render();
-    this.data.diskOverview = DiskOverView.render();
+    this.data.ramGauge = RamOverView.render();
+    this.data.diskGauge = DiskOverView.render();
     this.render();
   }
 });

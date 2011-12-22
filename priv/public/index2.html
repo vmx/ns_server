@@ -68,14 +68,12 @@
     </script>
 
 
-    <script type="text/template" id="storage-overview-tpl">
-      <div class="overview">
-        <h3>{{title}}</h3>
-        <div class="line_cnt">
-          <div style="overflow: auto;">
+    <script type="text/template" id="gauge-tpl">
+      <div class="line_cnt">
+        <div style="overflow: auto;">
           <div class="top-left">{{neTitle}} ({{formatMem neVal}})</div>
           <div class="top-right">{{nwTitle}} ({{formatMem nwVal}})</div>
-          </div>
+        </div>
           <div class="usage_biggest usage">
             <div style="width:100%;background-color:#E1E2E3"></div>
             <div style="width:{{meterWidth}}%;background-color:{{meterColor}}"></div>
@@ -94,7 +92,6 @@
               </td>
             </tr>
           </table>
-        </div>
       </div>
     </script>
 
@@ -104,8 +101,14 @@
 
       <div class="shadow-box" id="overview">
         <h1>Cluster</h1>
-        {{{ramOverview}}}
-        {{{diskOverview}}}
+        <div class="overview">
+          <h3>RAM Overview</h3>
+          {{{ramGauge}}}
+        </div>
+        <div class="overview">
+          <h3>Disk Overview</h3>
+          {{{diskGauge}}}
+        </div>
       </div>
 
       <div class="shadow-box">
