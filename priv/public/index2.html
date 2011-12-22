@@ -69,22 +69,29 @@
 
 
     <script type="text/template" id="storage-overview-tpl">
-      <div class="item ram-item">
-        <div class="label"><strong>{{title}}</strong></div>
+      <div class="overview">
+        <h3>{{title}}</h3>
         <div class="line_cnt">
-          <div class="top-left">Total Allocated ({{totalAllocated}})</div>
-          <div class="top-right">Total in Cluster ({{totalCluster}})</div>
+          <div style="overflow: auto;">
+          <div class="top-left">{{neTitle}} ({{formatMem neVal}})</div>
+          <div class="top-right">{{nwTitle}} ({{formatMem nwVal}})</div>
+          </div>
           <div class="usage_biggest usage">
             <div style="width:100%;background-color:#E1E2E3"></div>
-            <div style="width:100%;background-color:#7EDB49"></div>
-            <div style="width:0%;background-color:#00BCE9"></div>
-            <i style="left:100%;background-color:#e43a1b"></i>
+            <div style="width:{{meterWidth}}%;background-color:{{meterColor}}"></div>
+            <i style="left:{{pointer}}%;background-color:#e43a1b"></i>
           </div>
           <table>
             <tr>
-              <td style="text-align:left;color:#1878a2;">In Use ({{inUse}})</td>
-              <td style="text-align:center;color:#409f05;">Unused ({{unused}})</td>
-              <td style="text-align:right;color:#444245;">Unallocated ({{unallocated}})</td>
+              <td style="text-align:left;color:#1878a2;">
+                {{seTitle}} ({{formatMem seVal}})
+              </td>
+              <td style="text-align:center;color:#409f05;">
+                {{sTitle}} ({{formatMem sVal}})
+              </td>
+              <td style="text-align:right;color:#444245;">
+                {{swTitle}} ({{formatMem swVal}})
+              </td>
             </tr>
           </table>
         </div>
@@ -1092,6 +1099,7 @@
 
 <script src="/js2/libs/base64.js"></script>
 <script src="/js2/libs/jquery-1.7.1.min.js"></script>
+<script src="/js2/libs/underscore-1.1.6.js"></script>
 <script src="/js2/libs/ember-0.9.2.js"></script>
 
 <script src="/js2/libs/router.js"></script>

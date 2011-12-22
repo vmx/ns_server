@@ -39,6 +39,10 @@ nav {
     height: 50px;
 }
 
+h3 {
+    font-size: 16px;
+}
+
 nav ul {
     list-style: none;
     width: 940px;
@@ -284,42 +288,35 @@ h1 {
 
 
 /* Cluster Overview */
-#overview .item {
+.overview {
     padding: 13px 13px 13px 16px;
     border-bottom: 1px solid #CED5D9;
 }
 
-#overview .item .label {
+.overview h3 {
     float: left;
-    clear: right;
     width: 128px;
-    margin: 22px 0 0;
+    margin: 28px 0 0;
     color: #9B9B9B;
     line-height: 1.4;
-}
-
-#overview .item .label strong {
-    display: block;
+    font-weight: normal;
     color: #444245;
     padding: 4px 0 3px;
-    font-weight: normal;
-    font-size: 16px;
-    margin-top: 3px;
 }
 
-#overview .item .line_cnt {
+.overview .line_cnt {
     height: 85px;
     margin: 0 0 0 130px;
 }
 
-#overview .item .top-right {
+.overview .top-right {
     float:right;
     padding-bottom:13px;
     color:#444245;
     text-align:right;
 }
 
-#overview .item .top-left {
+.overview .top-left {
     float:left;
     margin-left:3px;
     padding-bottom:13px;

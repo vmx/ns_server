@@ -16,6 +16,27 @@ var localJSON = (function(){
   };
 })();
 
+var Data = {};
+
+Data.poolDetails = (function() {
+
+  this.data = {};
+  this.interval = null;
+
+  function fetch() {
+    $.get('/pools/default', function(data) {
+      Data.poolDetails.data = data;
+      Router.refresh();
+    });
+  }
+
+  fetch();
+  this.interval = setInterval(fetch, 5000);
+
+  return this;
+
+})();
+
 
 var User = {
 
@@ -96,6 +117,14 @@ $.ajaxSetup({
 
 });
 
+Handlebars.registerHelper('date', function(date) {
+  return Utils.formatLogTStamp(date);
+});
+
+Handlebars.registerHelper('formatMem', function(size) {
+  return Utils.formatMemSize(size || 0);
+});
+
 var App = (function () {
 
   Router.pre(function(args) {
@@ -136,8 +165,3 @@ var App = (function () {
   Router.init();
 
 })();
-
-
-Handlebars.registerHelper('date', function(date) {
-  return Utils.formatLogTStamp(date);
-});
