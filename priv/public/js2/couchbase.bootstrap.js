@@ -118,7 +118,7 @@ var App = (function () {
   Router.post('#/login/', User, User.login);
   Router.post('#/logout/', User, User.logout);
 
-  Router.get('#/cluster/', ClusterView, ClusterView.render);
+  Router.get('#/cluster/', ClusterView, ClusterView.show);
   Router.get('#/servers/', ServersView, ServersView.render);
   Router.get('#/buckets/', BucketsView, BucketsView.render);
   Router.get('#/views/', ViewsView, ViewsView.render);

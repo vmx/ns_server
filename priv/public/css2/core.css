@@ -18,6 +18,12 @@ body {
     height: 100%;
 }
 
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+}
+
 a {
     color: #2EA6DB;
     text-decoration: none;
@@ -150,12 +156,6 @@ footer {
 #footer-inner {
     width: 960px;
     margin: 0 auto;
-}
-
-table {
-    border-collapse: collapse;
-    border-spacing: 0;
-    width: 100%;
 }
 
 h1 {
@@ -352,10 +352,6 @@ h1 {
     background-color:#e43a1b;
     font-size:0;
     line-height:0;
-}
-.usage_biggest + table  {
-    clear:both;
-    width:599px;
 }
 
 .usage_biggest + table td {

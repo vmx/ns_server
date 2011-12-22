@@ -165,16 +165,19 @@ var Router = (function() {
 // most definitely ugly
 var View = (function() {
 
-  this.renderTo = function(to) {
+  this.data = {};
+
+  this.render = function(opts) {
+
+    opts = opts || {};
 
     if (this.parent) {
-      this.parent.render();
+      this.parent.render(opts);
     }
 
-    to = $(to);
-
-    var source   = $('#' + this.template + '-tpl').html();
-    var template = Handlebars.compile(source);
+    var tplData = $.extend({}, this.data, opts.data || {});
+    var source = $('#' + this.template + '-tpl').html();
+    var data = Handlebars.compile(source)(tplData);
 
     if (this.preRender) {
       if (this.preRender() === false) {
@@ -182,25 +185,31 @@ var View = (function() {
       }
     }
 
-    to.empty().append(template(this));
+    if (this.container) {
+      $(this.container).empty().append(data);
+    }
 
     if (this.postRender) {
       this.postRender();
     }
     currentView = this;
-  };
 
-  this.render = function() {
-    this.renderTo(this.container);
+    return data;
   };
 
   this.extend = function(obj) {
     return $.extend({}, this, obj);
   };
 
+  this.returnRender = function(data) {
+    var source   = $('#' + this.template + '-tpl').html();
+    var template = Handlebars.compile(source);
+    return template(this);
+  };
+
   return {
+    data: this.data,
     extend: this.extend,
-    renderTo: this.renderTo,
     render: this.render
   };
 

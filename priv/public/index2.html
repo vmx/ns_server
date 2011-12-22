@@ -68,52 +68,37 @@
     </script>
 
 
+    <script type="text/x-handlebars" id="storage-overview-tpl">
+      <div class="item ram-item">
+        <div class="label"><strong>{{title}}</strong></div>
+        <div class="line_cnt">
+          <div class="top-left">Total Allocated (256 MB)</div>
+          <div class="top-right">Total in Cluster (256 MB)</div>
+          <div class="usage_biggest usage">
+            <div style="width:100%;background-color:#E1E2E3"></div>
+            <div style="width:100%;background-color:#7EDB49"></div>
+            <div style="width:0%;background-color:#00BCE9"></div>
+            <i style="left:100%;background-color:#e43a1b"></i>
+          </div>
+          <table>
+            <tr>
+              <td style="text-align:left;color:#1878a2;">In Use (417 KB)</td>
+              <td style="text-align:center;color:#409f05;">Unused (255 MB)</td>
+              <td style="text-align:right;color:#444245;">Unallocated (0 B)</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </script>
+
     <script type="text/x-handlebars" id="cluster-tpl">
+
       <h1>Cluster Overview</h1>
+
       <div class="shadow-box" id="overview">
         <h1>Cluster</h1>
-        <div class="item ram-item">
-          <div class="label"><strong>RAM Overview</strong></div>
-          <div class="line_cnt">
-            <div class="top-left">Total Allocated (256 MB)</div>
-            <div class="top-right">Total in Cluster (256 MB)</div>
-            <div class="usage_biggest usage">
-              <div style="width:100%;background-color:#E1E2E3"></div>
-              <div style="width:100%;background-color:#7EDB49"></div>
-              <div style="width:0%;background-color:#00BCE9"></div>
-              <i style="left:100%;background-color:#e43a1b"></i>
-            </div>
-            <table style="width:100%;">
-              <tr>
-                <td style="text-align:left;color:#1878a2;">In Use (417 KB)</td>
-                <td style="text-align:center;color:#409f05;">Unused (255 MB)</td>
-                <td style="text-align:right;color:#444245;">Unallocated (0 B)</td>
-              </tr>
-            </table>
-          </div>
-        </div>
-        <div class="item disk-item">
-          <div class="label">
-            <strong>Disk Overview</strong>
-          </div>
-          <div class="line_cnt">
-            <div class="top-left">Usable Free Space (790 GB)</div>
-            <div class="top-right">Total Cluster Storage (929 GB)</div>
-            <div class="usage_biggest usage">
-              <div style="width:100%;background-color:#E1E2E3"></div>
-              <div style="width:14%;background-color:#FDC90D"></div>
-              <div style="width:0%;background-color:#00BCE9"></div>
-              <i style="left:100%;background-color:#E43A1B;"></i>
-            </div>
-            <table style="width:100%;">
-              <tr>
-                <td style="text-align:left;color:#1878A2;">In Use (69.3 KB)</td>
-                <td style="text-align:center;color:#C19710;">Other Data (139 GB)</td>
-                <td style="text-align:right;color:#444245;">Free (790 GB)</td>
-              </tr>
-            </table>
-          </div>
-        </div>
+        {{{ramOverview}}}
+        {{{diskOverview}}}
       </div>
 
       <div class="shadow-box">
