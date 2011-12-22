@@ -118,6 +118,11 @@ var App = (function () {
   Router.post('#/login/', User, User.login);
   Router.post('#/logout/', User, User.logout);
 
+  // Home page goes to cluster overview
+  Router.get(/^#(\/)?$/, this, function() {
+    document.location.href = '#/cluster/';
+  });
+
   Router.get('#/cluster/', ClusterView, ClusterView.show);
   Router.get('#/servers/', ServersView, ServersView.render);
   Router.get('#/buckets/', BucketsView, BucketsView.render);
