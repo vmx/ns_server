@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <meta charset="utf-8" />
+    <title>Couchbase Console</title>
+
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui.couchbase.css">
+    <link rel="stylesheet" type="text/css" href="css2/core.css">
+
+  </head>
+
+  <body>
+
+    <div id="global_wrapper"></div>
+    <div id="global_wrapper2"></div>
+<!--
+    <script type="text/template" id="views-tpl" data-template-name="views-tpl">
+-->
+    <script type="text/x-handlebars" id="views-tpl">
+      <h1>Views</h1>
+<ul>Buckets:
+{{#unbound}}
+{{#each buckets}}
+<li>{{this}}</li>
+{{/each}}
+{{/unbound}}
+</ul>
+<p>Buckets: {{buckets}}</p>
+<button id="rerender-views">Rerender Views</button>
+    </script>
+
+
+<!--
+{{#unbound}}
+<select id="views-bucket-select">
+{{#each bucketsObjects}}
+<option>{{name}}</option>
+{{/each}}
+</select>
+{{/unbound}}
+
+
+{{#unbound}}
+<ul>
+{{#each buckets}}
+<li>Buckets: {{buckets}}</li>
+{{/each}}
+</ul>
+{{/unbound}}
+-->
+
+  </body>
+
+<script src="/js2/libs/base64.js"></script>
+<script src="/js2/libs/jquery-1.7.1.min.js"></script>
+<script src="/js2/libs/underscore-1.1.6.js"></script>
+<!--
+<script src="/js2/libs/ember-0.9.2.js"></script>
+-->
+
+<script src="/js2/libs/ember.js"></script>
+
+<script src="/js2/libs/router.js"></script>
+
+<script src="/js2/couchbase.utils.js"></script>
+<script src="/js2/couchbase.vmx.js"></script>
+<!--
+<script src="/js2/couchbase.data.js"></script>
+<script src="/js2/couchbase.views.js"></script>
+<script src="/js2/couchbase.bootstrap.js"></script>
+-->
+</html>

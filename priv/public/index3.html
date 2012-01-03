@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <meta charset="utf-8" />
+    <title>Couchbase Console</title>
+
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui.couchbase.css">
+    <link rel="stylesheet" type="text/css" href="css2/core.css">
+
+  </head>
+
+  <body>
+
+    <div id="global_wrapper"></div>
+
+    <script type="text/x-handlebars" id="foomain-tpl">
+
+      <div id="container">
+
+        <header>
+          <div id="header-inner">
+            <a href="#/"><h1>Couchbase</h1></a>
+            <div id="sup-nav">
+              <a href="http://docs.couchbase.org/couchbase-manual-2.0/couchbase-getting-started.html">Documentation</a>
+              <b>•</b>
+              <a href="http://www.couchbase.org/forums/couchbase/couchbase-server-20-developer-preview">Support Forums</a>
+              <b>•</b> <a href="#/about/">About</a>
+              <form action="#/logout/" id="logout-form">
+                <b>•</b>
+                <input type="submit" value="Sign Out" id="sign-out" />
+              </form>
+            </div>
+          </div>
+        </header>
+
+        <nav>
+          <ul>
+            <li class="cluster"><a href="#/cluster/" id="cluster-link">Cluster Overview</a></li>
+            <li class="servers"><a href="#/servers/">Server Nodes</a></li>
+            <li class="buckets"><a href="#/buckets/">Data Buckets</a></li>
+            <li class="views"><a href="#/views/">Views</a></li>
+            <li class="logs"><a href="#/logs/">Logs</a></li>
+            <li class="settings"><a href="#/settings/">Settings</a></li>
+          </ul>
+        </nav>
+
+
+        <section id="content">
+        </section>
+
+        <div id="clearfooter"></div>
+
+        <footer>
+          <div id="footer-inner">
+            <span>
+              Copyright &copy; 2011 <a href="http://couchbase.com">Couchbase, Inc.</a>
+              All rights reserved.
+            </span>
+          </div>
+        </footer>
+
+      </div>
+    </script>
+
+    <script type="text/x-handlebars" id="fourohfour-tpl">
+      <h1>Page not found</h1>
+    </script>
+
+
+    <script type="text/template" id="gauge-tpl">
+      <div class="line_cnt">
+        <div style="overflow: auto;">
+          <div class="top-left">{{neTitle}} ({{formatMem neVal}})</div>
+          <div class="top-right">{{nwTitle}} ({{formatMem nwVal}})</div>
+        </div>
+          <div class="usage_biggest usage">
+            <div style="width:100%;background-color:#E1E2E3"></div>
+            <div style="width:{{meterWidth}}%;background-color:{{meterColor}}"></div>
+            <i style="left:{{pointer}}%;background-color:#e43a1b"></i>
+          </div>
+          <table>
+            <tr>
+              <td style="text-align:left;color:#1878a2;">
+                {{seTitle}} ({{formatMem seVal}})
+              </td>
+              <td style="text-align:center;color:#409f05;">
+                {{sTitle}} ({{formatMem sVal}})
+              </td>
+              <td style="text-align:right;color:#444245;">
+                {{swTitle}} ({{formatMem swVal}})
+              </td>
+            </tr>
+          </table>
+      </div>
+    </script>
+
+    <script type="text/template" id="cluster-tpl">
+
+      <h1>Cluster Overview</h1>
+
+      <div class="shadow-box" id="overview">
+        <h1>Cluster</h1>
+        <div class="overview">
+          <h3>RAM Overview</h3>
+          {{{ramGauge}}}
+        </div>
+        <div class="overview">
+          <h3>Disk Overview</h3>
+          {{{diskGauge}}}
+        </div>
+      </div>
+
+      <div class="shadow-box">
+        <h1>Buckets</h1>
+        <section>Graphs!</section>
+      </div>
+
+      <div class="shadow-box">
+        <h1>Server</h1>
+        <div id="overview_servers_block">
+          <div class="item ovf">
+            <div class="actservers">
+              <h3>Active Servers: <span id="active-servers-count">1</span></h3>
+            </div>
+            <ul>
+              <li class="fail is-zero">
+                <span class="when-non-zero">
+                  <a href="#visitServersTab=pending">Servers Failed Over:
+                    <span class="failed-over-count">0</span></a>
+                  <span class="badge" style="display: none; ">
+                    <span class="failed-over-count">0</span></span>
+                </span>
+                <span class="when-zero">Servers Failed Over: 0</span>
+              </li>
+              <li class="down is-zero">
+                <span class="when-non-zero">
+                  <a href="#visitServersTab=active">Servers Down:
+                    <span class="down-count">0</span></a>
+                  <span class="badge" style="display: none; ">
+                    <span class="down-count">0</span></span>
+                </span>
+                <span class="when-zero">Servers Down: 0</span>
+              </li>
+              <li class="pending is-zero">
+                <span class="when-non-zero">
+                  <a href="#visitServersTab=pending">Servers Pending Rebalance:
+                    <span class="pending-count">0</span></a>
+                  <span class="badge" style="display: none; ">
+                    <span class="pending-count">0</span></span>
+                </span><span class="when-zero">Servers Pending Rebalance: 0</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </script>
+
+
+    <script type="text/template" id="servers-tpl">
+      <h1>Servers</h1>
+      <div class="shadow-box" id="servers">
+        <div class="header_2">
+          <span class="staleness-notice" style="display: none; ">
+            Difficulties communicating with the cluster; displaying cached
+            information!</span>
+          <a class="add_button btn_1" style="display: block; ">
+            <span>Add Server</span></a>
+          <a class="rebalance_button btn_1 disabled" style="display: block; ">
+            <span>Rebalance</span></a>
+          <a class="stop_rebalance_button btn_1" style="display: none; ">
+            <span>Stop Rebalance</span></a>
+          <ul class="tabs">
+            <li class="tab_left"><a class="selected">Active Servers</a></li>
+            <li class="tab_right" id="rebalance_tab">
+              <a>Pending Rebalance</a>
+              <span class="badge"><span></span></span>
+            </li>
+          </ul>
+        </div>
+        <div class="panes">
+          <div style="display: block; ">
+            <div id="active_server_list_container" class="servers_list" style="">
+              <table class="list" style="width:100%">
+                <tr>
+                  <th class="node_name">Server Node Name</th>
+                  <th></th>
+                  <th style="text-align:left">RAM Usage</th>
+                  <th style="text-align:left">Swap Usage</th>
+                  <th style="text-align:left">CPU Usage</th>
+                  <th colspan="2" style="text-align:left">Items (Active / Replica)</th>
+                </tr>
+
+                <tr class="server_row server_up last-active" id="n_0-127.0.0.1">
+                  <td class="node_name">
+                    <a class="" href="#openServer=n_0@127.0.0.1" title="Show Server Node info"><ins class="expander closed"></ins></a>
+                    <a href="#sec=analytics&amp;statsHostname=127.0.0.1:9000" title="View Analytics for 127.0.0.1:9000">127.0.0.1:9000</a>
+                  </td>
+                  <td class="server_up last-active"></td>
+                  <td class="ram">
+                    <div class="vertical_bar">
+                      <div class="used" style="height:98%;top:6%"></div>
+                    </div>
+                    <div class="wrap">98.1%</div>
+                  </td>
+                  <td class="ram">
+                    <div class="vertical_bar">
+                      <div class="used" style="height:74%;top:30%"></div>
+                    </div>
+                    <div class="wrap"> 74.7%</div>
+                  </td>
+
+                  <td class="ram">
+                    <div class="vertical_bar">
+                      <div class="used" style="height:10%;top:95%"></div>
+                    </div>
+                    <div class="wrap">10%</div>
+                  </td>
+
+                  <td class="rep">
+                    0 / 0
+                  </td>
+                  <td class="actions">
+                    <a class="list_button eject_server disabled"><span>Remove</span></a>
+                    <a class="list_button failover_server disabled">
+                      <span>Fail Over</span></a>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="9" class="settings-placeholder" style="display: none; ">
+                </td></tr>
+              </table>
+            </div>
+          </div>
+          <div style="display: none; ">
+            <div id="pending_server_list_container" class="servers_list" style="">
+              <table class="list" style="width:100%">
+                <tr>
+                  <th class="node_name">Server Node Name</th>
+                  <th></th>
+                  <th style="text-align:left">RAM Usage</th>
+                  <th style="text-align:left">Swap Usage</th>
+                  <th style="text-align:left">CPU Usage</th>
+                  <th colspan="2" style="text-align:left">Items (Active / Replica)</th>
+                </tr>
+                <tr class="server_row rebalance_empty">
+                  <td colspan="7">
+                    <span class="rebalance_empty_message">
+                      There are no servers pending rebalance.</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </script>
+
+
+    <script type="text/template" id="buckets-tpl">
+      <h1>Data Buckets</h1>
+      <div class="shadow-box" id="couchbase_buckets">
+        <div id="manage_buckets_top_bar" class="header_2">
+          <h4 style="float:left">Couchbase Buckets</h4>
+          <div class="right">
+            <button class="button_200 create-bucket-button">
+              Create New Data Bucket
+            </button>
+          </div>
+        </div>
+        <div id="bucket_list_container">
+          <table class="list" width="100%">
+            <tr>
+              <th class="bucket_name">Bucket Name</th>
+              <th>Nodes</th>
+              <th>Item Count</th>
+              <th>Ops/sec</th>
+              <th class="disk_fetch">Disk Fetches/sec</th>
+              <th class="hit_ratio">Hit Ratio</th>
+              <th>RAM Usage/Quota</th>
+              <th>Disk Usage</th>
+              <th class="last"></th>
+            </tr>
+            <tr class="couchbase">
+              <td class="bucket_name">
+                <a class="disable-if-stale" href="#visitBucket=default" title="Show Bucket info"><span class="expander closed"></span></a>
+                <a class="disable-if-stale" title="View Analytics for default" href="#sec=analytics&amp;statsBucket=/pools/default/buckets/default">default</a>
+              </td>
+              <td>
+                <span id="default_health" class="health_graph"><canvas style="display: inline-block; vertical-align: top; width: 18px; height: 18px; " width="18" height="18"></canvas></span>
+                1
+              </td>
+              <td>0</td>
+              <td>0</td>
+              <td>0</td>
+
+              <td>417KB / 256MB</td>
+              <td>69.3KB</td>
+              <td>
+
+                <a class="list_button disable-if-stale" href="#sec=views&amp;viewsBucket=default"><span>Views</span></a>
+                <a class="list_button" href="#sec=documents&amp;bucketName=default"><span>Documents</span></a>
+              </td>
+            </tr>
+            <tr>
+              <td class="settings-placeholder" colspan="10" style="display: none; "></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </script>
+
+
+    <script type="text/x-handlebars" id="foobar-tpl">
+Foo bar
+    </script>
+
+    <script type="text/x-handlebars" id="views-tpl">
+      <h1>Views</h1>
+<p>Bound buckets: {{buckets}}</p>
+<p>Unbound buckets: {{unbound buckets}}</p>
+
+<select>
+{{#unbound}}
+{{#each buckets}}
+<option value="{{this}}">{{this}}</option>
+{{/each}}
+{{/unbound}}
+</select>
+
+      <div id="views" style="display: block; " class="in-development">
+        <h1 style="clear:both;overflow:hidden">
+          <span style="float:left"><select id="views_bucket_select" style="display: none; "><option value="default" selected="selected">default</option></select><input class="ui-autocomplete-input ui-widget ui-widget-content ui-corner-left" autocomplete="off" role="textbox" aria-autocomplete="list" aria-haspopup="true"><button type="button" tabindex="-1" title="Show All Items" class="ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-right ui-button-icon" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon ui-icon-triangle-1-s"></span><span class="ui-button-text">&nbsp;</span></button> &gt; <a href="#visitSec=views">Views</a>
+            <span class="when-inside-view" style="display: none; ">
+              &gt; <select id="views_view_select" class="selectBox" style="display: none; "></select><a class="selectBox selectBox-dropdown" style="display: inline-block; " title="" tabindex="0"><span class="selectBox-label">&nbsp;</span><button class="selectBox-arrow ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-right ui-button-icon"><span class="ui-button-icon-primary ui-icon ui-icon-triangle-1-s"></span><span class="ui-button-text">&nbsp;</span></button></a>
+            </span>
+          </span>
+        </h1>
+        <div id="views_spinner" class="spinner" style="height: 100px; line-height: 100px; display: none; "><span>Loading...</span></div>
+        <div class="shadow_box" id="views_list">
+          <div class="header_2">
+            <ul class="tabs switcher">
+              <li class="tab_left">
+                <a class="selected">Development Views</a>
+              </li>
+              <li class="tab_right">
+                <a>Production Views</a>
+              </li>
+            </ul>
+            <div class="create_view">
+              <a class="button_200 btn_create when-in-dev"><span>Create Development View</span></a>
+              <span class="staleness-notice" style="display:none;">Difficulties communicating with the cluster; displaying cached information!</span>
+            </div>
+          </div>
+          <div class="panes">
+            <div style="display: block; ">
+              <div id="development_views_list_container" class="views_list">
+                <table class="list" width="100%">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Language</th>
+                      <th>Status</th>
+                      <th><div style="display:none">Disk Size</div></th>
+                      <th class="last"></th>
+                    </tr>
+                  </thead>
+
+                  <!--  -->
+                  <tbody>
+                    <tr><td colspan="10" class="empty">
+                        <span class="when-in-dev">No Design Documents currently defined. Click "Create Development View" above to create one.</span>
+                        <!-- <span class="when-in-prod">There are no Design Documents currently published. Please visit "Development Views" to create one.</span> -->
+                    </td></tr>
+                  </tbody>
+                  <!--  -->
+                </table>
+              </div>
+            </div>
+            <div style="display: none; ">
+              <div id="production_views_list_container" class="views_list">
+                <table class="list" width="100%">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Language</th>
+                      <th>Status</th>
+                      <th><div style="display:none">Disk Size</div></th>
+                      <th class="last"></th>
+                    </tr>
+                  </thead>
+
+                  <!--  -->
+                  <tbody>
+                    <tr><td colspan="10" class="empty">
+                        <span class="when-in-dev">No Design Documents currently defined. Click "Create Development View" above to create one.</span>
+                        <span class="when-in-prod">There are no Design Documents currently published. Please visit "Development Views" to create one.</span>
+                    </td></tr>
+                  </tbody>
+                  <!--  -->
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script id="views_list_template" type="text/template">
+          <table class="list" width="100%">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Language</th>
+                <th>Status</th>
+                <th><div style="display:none">Disk Size</div></th>
+                <th class="last"></th>
+              </tr>
+            </thead>
+
+            <!-- {% if (!bucketName) { %} -->
+            <tbody>
+              <tr>
+                <td colspan="10" class="empty">
+                  <span>
+                    No buckets currently defined! Go to
+                    <a href="#sec=buckets">Data Buckets</a>
+                    to create some.
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+
+            <!-- {% } else if (!rows.length) { %} -->
+            <tbody>
+              <tr><td colspan="10" class="empty">
+                  <span class="when-in-dev">No Design Documents currently defined. Click "Create Development View" above to create one.</span>
+                  <span class="when-in-prod">There are no Design Documents currently published. Please visit "Development Views" to create one.</span>
+              </td></tr>
+            </tbody>
+            <!-- {% } else { %} -->
+            <!-- {% _.each(rows, function (ddoc) {  %} -->
+            <tbody>
+              <tr>
+                <td class="design_doc_name">
+                  {%= h(ddoc._id) %}
+                </td>
+                <td class="langv">{%= h(ddoc.language || "javascript") %}</td>
+                <td>
+                  <!-- {% if (ddoc.progress) {  %} -->
+                  <div class="indexer_progress">
+                    <div class="usage_smallest">
+                      <div class="used" style="width: {%= h(ddoc.progress) %}%"></div>
+                    </div>
+                    <span class="ddoc_message">Indexing {%= h(ddoc.progress) %}%</span>
+                  </div>
+                  <!-- {% } %} -->
+                </td>
+                <td>
+                </td>
+                <td>
+                  <a class="list_button when-in-prod" href="#copyDDoc={%=h(ddoc._id)%}"><span>Copy to Dev</span></a>
+                  <a class="list_button when-in-dev" href="#publishDDoc={%=h(ddoc._id)%}"><span>Publish</span></a>
+                  <a class="list_button when-in-dev" href="#addView={%=h(ddoc._id)%}"><span>Add View</span></a>
+                  <a class="list_button when-in-dev" href="#addSpatial={%=h(ddoc._id)%}"><span>Add Spatial View</span></a>
+                  <a class="list_button" href="#deleteDDoc={%=h(ddoc._id)%}"><span>Delete</span></a>
+                </td>
+              </tr>
+              <!-- {% if (_.size(ddoc.viewInfos) < 1 && _.size(ddoc.spatialInfos) < 1) { %} -->
+              <tr><td colspan="10" style="padding:15px">No views defined!<span class="when-in-dev"> Click "Create Development View" above to create one.</span></td></tr>
+              <!-- {% } else { if (_.size(ddoc.viewInfos) > 0) { %} -->
+              <!-- {% _.each(ddoc.viewInfos, function (viewInfo) { %} -->
+              <tr>
+                <td class="view_name" colspan="4">
+                  <a href="{%=h(viewInfo.viewLink)%}">{%= h(viewInfo.name) %}</a>
+                </td>
+                <td>
+                  <a class="list_button btn_remove" href="{%=h(viewInfo.removeLink)%}"><span>Delete</span></a>
+                </td>
+              </tr>
+              <!-- {% }); %} -->
+              <!-- {% } if (_.size(ddoc.spatialInfos) > 0) { %} -->
+              <!-- {% _.each(ddoc.spatialInfos, function (spatialInfo) { %} -->
+              <tr>
+                <td class="view_name" colspan="3">
+                  <a href="{%=h(spatialInfo.viewLink)%}">[Spatial] {%= h(spatialInfo.name) %}</a>
+                </td>
+                <td>
+                  <a class="list_button btn_remove" href="{%=h(spatialInfo.removeLink)%}"><span>Delete</span></a>
+                </td>
+              </tr>
+              <!-- {% }); %} -->
+              <!-- {% } } %} -->
+            </tbody>
+            <!-- {% }); %} -->
+            <!-- {% } %} -->
+          </table>
+        </script>
+
+        <div id="view_details" style="display: none; ">
+          <div id="no_sample_docs" class="shadow_box" style="display:none">
+            <h3 class="block-expander" style="padding:15px">Bucket is currently empty.</h3>
+          </div>
+          <div id="sample_docs" class="shadow_box">
+            <div class="darker_block bucket_details">
+              <h3 class="block-expander">
+                <ins></ins><span class="view_head">Sample Document</span>
+
+                <span class="buttons">
+                  <input type="text" id="lookup_doc_by_id" placeholder="Document ID">
+                  <a class="btn_1" id="lookup_doc_by_id_btn"><span>Lookup Id</span></a>
+                  <a class="btn_1" id="preview_random_doc">
+                    <span>Preview a Random Document</span>
+                  </a>
+                </span>
+
+              </h3>
+              <span class="buttons when-not-editing">
+                <a class="btn_1" id="edit_preview_doc"><span>Edit</span></a>
+              </span>
+              <span class="buttons when-editing">
+                <a class="btn_1" id="cancel_preview_doc"><span>Cancel</span></a>
+                <a class="btn_1" id="save_preview_doc"><span>Save</span></a>
+              </span>
+
+              <div class="stats">
+                <textarea id="sample_doc_editor" style="display: none; "></textarea><div class="CodeMirror read_only"><div style="overflow: hidden; position: relative; width: 1px; height: 0px;"><textarea style="position: absolute; width: 2px;" wrap="off"></textarea></div><div class="CodeMirror-scroll cm-s-default"><div style="position: relative; height: 1px; "><div style="position: absolute; height: 0; width: 0; overflow: hidden;"><pre>x</pre></div><div style="position: relative"><div class="CodeMirror-gutter" style="display: none; "><div class="CodeMirror-gutter-text"></div></div><div class="CodeMirror-lines"><div style="position: relative"><pre class="CodeMirror-cursor">&nbsp;</pre><div></div></div></div></div></div></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="shadow_box viewcode" id="viewcode" style="display: none; ">
+            <div class="darker_block">
+              <h3 class="block-expander"><ins></ins><span class="view_head">View Code</span>
+                <span class="buttons">
+                  <a id="save_view_as" class="btn_1" style="display: none; "><span>Save As...</span></a>
+                  <a id="just_save_view" class="btn_1" style="display: none; "><span>Save</span></a>
+                </span>
+              </h3>
+              <div class="stats">
+                <table class="list"><tbody><tr>
+                      <td class="code map" style="width: 654px;">
+                        <label for="viewcode_map">Map</label>
+                        <textarea spellcheck="false" cols="20" rows="11" class="map" id="viewcode_map" style="display: none; "></textarea><div class="CodeMirror read_only"><div style="overflow: hidden; position: relative; width: 1px; height: 0px;"><textarea style="position: absolute; width: 2px;" wrap="off"></textarea></div><div class="CodeMirror-scroll cm-s-default"><div style="position: relative; height: 1px; "><div style="position: absolute; height: 0; width: 0; overflow: hidden;"><pre>x</pre></div><div style="position: relative"><div class="CodeMirror-gutter" style="display: none; "><div class="CodeMirror-gutter-text"></div></div><div class="CodeMirror-lines"><div style="position: relative; margin-left: 0px; "><pre class="CodeMirror-cursor">&nbsp;</pre><div></div></div></div></div></div></div></div>
+                      </td>
+                      <td class="splitter grippie"></td>
+                      <td class="code reduce">
+                        <label for="viewcode_reduce">Reduce<span class="when-in-dev"> (<span id="built_in_reducers">built in: <a>_count</a>, <a>_sum</a>, <a>_stats</a></span>)</span></label>
+                        <textarea placeholder="(optional)" spellcheck="false" cols="20" rows="11" class="reduce" id="viewcode_reduce" style="display: none; "></textarea><div class="CodeMirror read_only"><div style="overflow: hidden; position: relative; width: 1px; height: 0px;"><textarea style="position: absolute; width: 2px;" wrap="off"></textarea></div><div class="CodeMirror-scroll cm-s-default"><div style="position: relative; height: 1px; "><div style="position: absolute; height: 0; width: 0; overflow: hidden;"><pre>x</pre></div><div style="position: relative"><div class="CodeMirror-gutter" style="display: none; "><div class="CodeMirror-gutter-text"></div></div><div class="CodeMirror-lines"><div style="position: relative; margin-left: 0px; "><pre class="CodeMirror-cursor">&nbsp;</pre><div></div></div></div></div></div></div></div>
+                      </td>
+                </tr></tbody></table>
+              </div>
+            </div>
+          </div>
+
+          <div class="shadow_box viewcode" id="spatialcode" style="display: none; ">
+            <div class="darker_block">
+              <h3 class="block-expander"><ins></ins><span class="view_head">Spatial Code</span>
+                <span class="buttons">
+                  <a id="save_spatial_as" class="btn_1" style="display: none; "><span>Save As...</span></a>
+                  <a id="just_save_spatial" class="btn_1" style="display: none; "><span>Save</span></a>
+                </span>
+              </h3>
+              <div class="stats">
+                <table class="list"><tbody><tr>
+                      <td class="code map" style="width: 654px;">
+                        <label for="spatialcode_fun">Spatial</label>
+                        <textarea spellcheck="false" cols="20" rows="11" class="map" id="spatialcode_fun" style="display: none; "></textarea><div class="CodeMirror read_only"><div style="overflow: hidden; position: relative; width: 1px; height: 0px;"><textarea style="position: absolute; width: 2px;" wrap="off"></textarea></div><div class="CodeMirror-scroll cm-s-default"><div style="position: relative; height: 1px; "><div style="position: absolute; height: 0; width: 0; overflow: hidden;"><pre>x</pre></div><div style="position: relative"><div class="CodeMirror-gutter" style="display: none; "><div class="CodeMirror-gutter-text"></div></div><div class="CodeMirror-lines"><div style="position: relative; margin-left: 0px; "><pre class="CodeMirror-cursor">&nbsp;</pre><div></div></div></div></div></div></div></div>
+                      </td>
+                </tr></tbody></table>
+              </div>
+            </div>
+          </div>
+
+          <div id="view_results_block" class="results_block" style="display: none; ">
+            <h1>Filter Results <a id="view_run_button" class="run_button btn_1 bt_marg disabled"><span>Show Results</span></a>
+              <span class="view_query_string"></span>
+              <span class="ic_prev_next" style="display: none; ">
+                <a class="arr_prev"></a>
+                <a class="arr_next"></a>
+              </span> <!--/ic_prev_next-->
+            </h1>
+            <!--filter result-->
+            <div class="f_wrap">
+              <div class="filter_cont">
+                <a href="#" class="exp_filter"></a>
+              </div><!--/filter_cont-->
+              <div class="f_popup">
+                <div class="f_cont">
+                  <div class="br_right"></div>
+                  <div class="wrap">
+                    <select id="view_filters" name="standard-dropdown" class="selectBox" style="display: none; ">
+                      <option value=""></option>
+                      <!-- <option value="conflicts">conflicts</option> -->
+                      <option value="stale">stale</option>
+                      <option value="reduce">reduce</option>
+                      <option value="group">group</option>
+                      <option value="group_level">group_level</option>
+                      <option value="start_key">start_key</option>
+                      <option value="end_key">end_key</option>
+                      <option value="start_key_docid">start_key_docid</option>
+                      <option value="end_key_docid">end_key_docid</option>
+                      <option value="inclusive_end">inclusive_end</option>
+                      <option value="descending">descending</option>
+                      <option value="key">key</option>
+                      <option value="keys">keys</option>
+                      <option value="connection_timeout">connection_timeout</option>
+                    </select><a class="selectBox selectBox-dropdown" style="display: inline-block; " title="" tabindex="0"><span class="selectBox-label">&nbsp;</span><button class="selectBox-arrow ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-right ui-button-icon"><span class="ui-button-icon-primary ui-icon ui-icon-triangle-1-s"></span><span class="ui-button-text">&nbsp;</span></button></a>
+                  </div><!--/wrap-->
+                  <a id="view_filter_add" class="ic_plus"></a>
+
+                  <table class="key">
+                    <!-- <tr><td><div class="btn_x"></div></td> -->
+                    <!-- <td><label for="view_filter_conflicts">conflicts</label></td> -->
+                    <!-- <td><input id="view_filter_conflicts" name="conflicts" type="checkbox" /></td></tr> -->
+                    <tbody><tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_descending">descending</label></td>
+                        <td><input id="view_filter_descending" name="descending" type="checkbox"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_end_key">end_key</label></td>
+                        <td><input id="view_filter_end_key" name="end_key" type="text"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_end_key_docid">end_key_docid</label></td>
+                        <td><input id="view_filter_end_key_docid" name="end_key_docid" type="text"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_group">group</label></td>
+                        <td><input id="view_filter_group" name="group" type="checkbox"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_group_level">group_level</label></td>
+                        <td><input id="view_filter_group_level" name="group_level" type="text"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_include_docs">include_docs</label></td>
+                        <td><input id="view_filter_include_docs" name="include_docs" type="checkbox"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_inclusive_end">inclusive_end</label></td>
+                        <td><input id="view_filter_inclusive_end" name="inclusive_end" type="checkbox"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_key">key</label></td>
+                        <td><input id="view_filter_key" name="key" type="text"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_keys">keys</label></td>
+                        <td><input id="view_filter_keys" name="keys" type="text"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_reduce">reduce</label></td>
+                        <td><input id="view_filter_reduce" name="reduce" type="checkbox"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_start_key">start_key</label></td>
+                        <td><input id="view_filter_start_key" name="start_key" type="text"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_start_key_docid">start_key_docid</label></td>
+                        <td><input id="view_filter_start_key_docid" name="start_key_docid" type="text"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_update_seq">update_seq</label></td>
+                        <td><input id="view_filter_update_seq" name="update_seq" type="checkbox"></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_stale">stale</label></td>
+                        <td>
+                          <select id="view_filter_stale" name="stale" class="selectBox" style="display: none; ">
+                            <option value="update_after">update_after</option>
+                            <option value="ok">ok</option>
+                          </select><a class="selectBox selectBox-dropdown" style="display: inline-block; " title="" tabindex="0"><span class="selectBox-label">update_after</span><button class="selectBox-arrow ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-right ui-button-icon"><span class="ui-button-icon-primary ui-icon ui-icon-triangle-1-s"></span><span class="ui-button-text">&nbsp;</span></button></a>
+                      </td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_connection_timeout">connection_timeout</label></td>
+                        <td><input id="view_filter_connection_timeout" name="connection_timeout" type="text" placeholder="milliseconds"></td></tr>
+                  </tbody></table><!--/key-->
+
+                </div><!--f_cont-->
+              </div><!--f_popup-->
+            </div>
+            <!--/filter result-->
+            <div class="shadow_box">
+              <ul class="tabs dev-subset-switcher when-in-dev">
+                <li class="tab_left"><a class="subset_dev selected">Development Time Subset</a></li>
+                <li class="tab_right"><a class="subset_prod">Full Cluster Data Set</a></li>
+              </ul>
+              <div id="view_results_spinner" class="spinner" style="height: 100px; line-height: 100px; display: none; "><span>Loading...</span></div>
+              <div id="view_results_container" class="content c_result">
+                <table class="list align_text" style="width:100%">
+                  <tbody><tr>
+                      <th class="keycol">Key</th>
+                      <th>Value</th>
+                    </tr>
+                    <!--  -->
+                  </tbody><tbody>
+                    <tr><td colspan="2" style="text-align:center">To see the results of this view, click "Show Results" above.</td></tr>
+                  </tbody>
+                  <!--  -->
+                </table>
+              </div>
+            </div>
+            <script id="view_results_template" type="text/template">
+              <table class="list align_text" style="width:100%">
+                <tr>
+                  <th class="keycol">Key</th>
+                  <th>Value</th>
+                </tr>
+                <!-- {% if (!rows.lackOfValue) { %} -->
+                <!-- {% _.each(rows, function (r) { %} -->
+                <tbody>
+                  <tr>
+                    <td class="keycol">
+                      <div class="key">{%= h(JSON.stringify(r.key)) %}</div>
+                      {% if (h(r.id) !== "undefined") { %}
+                      <a class="id">{%= h(r.id) %}</a>
+                      {% } else { %}
+                      <div class="id">{%= h(r.id) %}</div>
+                      {% } %}
+                    </td>
+                    <td>{%= $.futon.formatJSON(r.value, {html:true}) %}</td>
+                  </tr>
+                </tbody>
+                <!-- {% }); %} -->
+                <!-- {% } else { %} -->
+                <tbody>
+                  <tr><td colspan="2" style="text-align:center">To see the results of this view, click "Show Results" above.</td></tr>
+                </tbody>
+                <!-- {% } %} -->
+              </table>
+            </script>
+          </div>
+
+          <div id="spatial_results_block" class="results_block" style="display: none; ">
+            <h1>Filter Results <a id="spatial_run_button" class="run_button btn_1 bt_marg disabled"><span>Show Results</span></a>
+              <span class="view_query_string"></span>
+              <span class="ic_prev_next" style="display: none; ">
+                <a class="arr_prev"></a>
+                <a class="arr_next"></a>
+              </span> <!--/ic_prev_next-->
+            </h1>
+            <!--filter result-->
+            <div class="f_wrap">
+              <div class="filter_cont">
+                <a href="#" class="exp_filter"></a>
+              </div><!--/filter_cont-->
+              <div class="f_popup">
+                <div class="f_cont">
+                  <div class="br_right"></div>
+                  <div class="wrap">
+                    <select id="spatial_filters" name="standard-dropdown" class="selectBox" style="display: none; ">
+                      <option value=""></option>
+                      <!-- <option value="conflicts">conflicts</option> -->
+                      <option value="stale">stale</option>
+                      <option value="bbox">bbox</option>
+                      <option value="connection_timeout">connection_timeout</option>
+                    </select><a class="selectBox selectBox-dropdown" style="display: inline-block; " title="" tabindex="0"><span class="selectBox-label">&nbsp;</span><button class="selectBox-arrow ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-right ui-button-icon"><span class="ui-button-icon-primary ui-icon ui-icon-triangle-1-s"></span><span class="ui-button-text">&nbsp;</span></button></a>
+                  </div><!--/wrap-->
+                  <a id="spatial_filter_add" class="ic_plus"></a>
+
+                  <table class="key">
+                    <!-- <tr><td><div class="btn_x"></div></td> -->
+                    <!-- <td><label for="view_filter_conflicts">conflicts</label></td> -->
+                    <!-- <td><input id="view_filter_conflicts" name="conflicts" type="checkbox" /></td></tr> -->
+                    <tbody><tr><td><div class="btn_x"></div></td>
+                        <td><label for="spatial_filter_bbox">bbox</label></td>
+                        <td><input id="spatial_filter_bbox" name="bbox" type="text"></td></tr>
+                      <!--
+                          <tr><td><div class="btn_x"></div></td>
+                            <td><label for="view_filter_end_key_docid">end_key_docid</label></td>
+                            <td><input id="view_filter_end_key_docid" name="end_key_docid" type="text" /></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_group">group</label></td>
+                        <td><input id="view_filter_group" name="group" type="checkbox" /></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_group_level">group_level</label></td>
+                        <td><input id="view_filter_group_level" name="group_level" type="text" /></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_include_docs">include_docs</label></td>
+                        <td><input id="view_filter_include_docs" name="include_docs" type="checkbox" /></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_inclusive_end">inclusive_end</label></td>
+                        <td><input id="view_filter_inclusive_end" name="inclusive_end" type="checkbox" /></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_key">key</label></td>
+                        <td><input id="view_filter_key" name="key" type="text" /></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_keys">keys</label></td>
+                        <td><input id="view_filter_keys" name="keys" type="text" /></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_reduce">reduce</label></td>
+                        <td><input id="view_filter_reduce" name="reduce" type="checkbox" /></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_start_key">start_key</label></td>
+                        <td><input id="view_filter_start_key" name="start_key" type="text" /></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_start_key_docid">start_key_docid</label></td>
+                        <td><input id="view_filter_start_key_docid" name="start_key_docid" type="text" /></td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_update_seq">update_seq</label></td>
+                        <td><input id="view_filter_update_seq" name="update_seq" type="checkbox" /></td></tr>
+                      -->
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="spatial_filter_stale">stale</label></td>
+                        <td>
+                          <select id="spatial_filter_stale" name="stale" class="selectBox" style="display: none; ">
+                            <option value="update_after">update_after</option>
+                            <option value="ok">ok</option>
+                          </select><a class="selectBox selectBox-dropdown" style="display: inline-block; " title="" tabindex="0"><span class="selectBox-label">update_after</span><button class="selectBox-arrow ui-button ui-widget ui-state-default ui-button-icon-only ui-corner-right ui-button-icon"><span class="ui-button-icon-primary ui-icon ui-icon-triangle-1-s"></span><span class="ui-button-text">&nbsp;</span></button></a>
+                      </td></tr>
+                      <tr><td><div class="btn_x"></div></td>
+                        <td><label for="view_filter_connection_timeout">connection_timeout</label></td>
+                        <td><input id="view_filter_connection_timeout" name="connection_timeout" type="text" placeholder="milliseconds"></td></tr>
+                  </tbody></table><!--/key-->
+
+                </div><!--f_cont-->
+              </div><!--f_popup-->
+            </div>
+            <!--/filter result-->
+            <div class="shadow_box">
+              <ul class="tabs dev-subset-switcher when-in-dev">
+                <li class="tab_left"><a class="subset_dev selected">Development Time Subset</a></li>
+                <li class="tab_right"><a class="subset_prod">Full Cluster Data Set</a></li>
+              </ul>
+              <div id="spatial_results_spinner" class="spinner" style="height:100px;line-height:100px;display:none;"><span>Loading...</span></div>
+              <div id="spatial_results_container" class="content c_result">
+                <table class="list align_text" style="width:100%">
+                  <tbody><tr>
+                      <th class="keycol">Bbox</th>
+                      <th class="keycol">Geometry</th>
+                      <th>Value</th>
+                    </tr>
+                    <!--  -->
+                  </tbody><tbody>
+                    <tr><td colspan="3" style="text-align:center">To see the results of this view, click "Show Results" above.</td></tr>
+                  </tbody>
+                  <!--  -->
+                </table>
+              </div>
+            </div>
+            <script id="spatial_results_template" type="text/template">
+              <table class="list align_text" style="width:100%">
+                <tr>
+                  <th class="keycol">Bbox</th>
+                  <th class="keycol">Geometry</th>
+                  <th>Value</th>
+                </tr>
+                <!-- {% if (!rows.lackOfValue) { %} -->
+                <!-- {% _.each(rows, function (r) { %} -->
+                <tbody>
+                  <tr>
+                    <td class="keycol">
+                      <div class="key">{%= h(JSON.stringify(r.bbox)) %}</div>
+                      {% if (h(r.id) !== "undefined") { %}
+                      <a class="id">{%= h(r.id) %}</a>
+                      {% } else { %}
+                      <div class="id">{%= h(r.id) %}</div>
+                      {% } %}
+                    </td>
+                    <td>{%= h(JSON.stringify(r.geometry)) %}</td>
+                    <td>{%= $.futon.formatJSON(r.value, {html:true}) %}</td>
+                  </tr>
+                </tbody>
+                <!-- {% }); %} -->
+                <!-- {% } else { %} -->
+                <tbody>
+                  <tr><td colspan="3" style="text-align:center">To see the results of this view, click "Show Results" above.</td></tr>
+                </tbody>
+                <!-- {% } %} -->
+              </table>
+            </script>
+          </div>
+
+        </div>
+      </div>
+    </script>
+
+    <script type="text/x-handlebars" id="logs-tpl">
+
+      <a href="/diag" class="diag">Generate Diagnostics Report</a>
+      <h1>Log</h1>
+
+      <table class="lined_tab">
+        <tr>
+          <th>Event</th>
+          <th>Module Code</th>
+          <th>Server Node</th>
+          <th>Time</th>
+        </tr>
+        {{#each logs}}
+        <tr>
+          <td>{{text}}</td>
+          <td>{{module}}</td>
+          <td>{{node}}</td>
+          <td>{{{date tstamp}}}</td>
+        </tr>
+        {{/each}}
+      </table>
+
+    </script>
+
+    <script type="text/template" id="settings-tpl">
+      <h1>Settings</h1>
+      <div class="shadow-box">
+        <div class="section">
+          <div class="header_2">
+            <ul class="tabs">
+              <li class="tab_left"><a id="settings_update_notifications" class="selected">Update Notifications</a></li>
+              <li><a id="settings_auto_failover">Auto-Failover</a></li>
+              <li><a id="settings_alerts">Alerts</a></li>
+              <li class="tab_right"><a id="settings_compaction">Auto-Compaction</a></li>
+            </ul>
+          </div>
+          <div class="panes clearfix">
+            <div id="notifications_container" class="notifications-updates" style="display: block; ">
+              <p>You are running version 1.8.0 DEV edition (build-699-gf24bbb7)</p>
+
+              <label class="for-enable-replicas">
+
+                <input type="checkbox" id="notification-updates">
+
+                <span>Enable software update notifications.</span>
+                <a href="#" class="more_info">What's this?</a>
+              </label>
+              <p class="more_info">
+                Enabling software update notifications allows notification in
+                the Couchbase web console when a new version of Couchbase Server
+                is available. Configuration information transferred in the
+                update check is anonymous and does not include any stored
+                key-value data.
+              </p>
+              <div class="save_cancel">
+                <button class="save_button float_right" type="button" disabled="disabled">
+                  Save
+                </button>
+              </div>
+            </div>
+            <div id="auto_failover_container" class="auto_failover" style="display: none; ">
+              <label class="for-enable-replicas" for="auto_failover_enabled">
+                <input type="checkbox" id="auto_failover_enabled">
+                <span>Enable auto-failover</span>
+              </label>
+              <label for="auto_failover_timeout">
+                <span>Timeout: </span>
+              </label>
+              <input type="text" id="auto_failover_timeout" value="30" disabled="disabled">
+              <a class="text_11 tooltip"><span>What's this?</span>
+                <span class="tooltip_msg"><span>
+                    How long (in seconds) a node must be considered down before it gets auto-failovered.
+                </span></span>
+              </a>
+              <div class="error-container err-timeout"></div>
+
+              <div class="save_cancel">
+                <button class="save_button float_right" type="button" disabled="disabled">
+                  Save
+                </button>
+              </div>
+            </div>
+            <div id="email_alerts_container" class="email_alerts" style="display: none; ">
+              <label class="for-enable-replicas" for="email_alerts_enabled">
+                <input type="checkbox" id="email_alerts_enabled" checked="checked">
+                <span>Enable email alerts</span>
+              </label>
+              <fieldset>
+                <legend>Email Server Settings</legend>
+                <div class="row">
+                  <label for="email_alerts_host">
+                    <span>Host:</span>
+                  </label>
+                  <input type="text" id="email_alerts_host" value="localhost">
+                </div>
+                <div>
+                  <label for="email_alerts_port">
+                    <span>Port:</span>
+                  </label>
+                  <input type="text" id="email_alerts_port" value="25">
+                  <div class="error-container err-email_port"></div>
+                </div>
+                <label for="email_alerts_user">
+                  <span>Username:</span>
+                </label>
+                <input type="text" id="email_alerts_user" value="">
+                <label for="email_alerts_pass">
+                  <span>Password:</span>
+                </label>
+                <input type="password" id="email_alerts_pass" value="">
+              </fieldset>
+              <fieldset>
+                <legend>Email Settings</legend>
+                <label for="email_alerts_sender">
+                  <span>Sender email:</span>
+                </label>
+                <input type="text" id="email_alerts_sender" value="couchbase@localhost">
+                <div class="error-container err-sender"></div>
+                <label for="email_alerts_sender">
+                  <span>Recipients:</span>
+                </label>
+                <textarea id="email_alerts_recipients">root@localhost</textarea>
+                <span style="vertical-align:top;margin:0 5px;line-height:24px">separate addresses with comma "," or semicolon ";" or spaces " "</span>
+                <div class="error-container err-recipients"></div>
+                <div><button class="edit_btn" id="test_email">Test Mail</button> <span>using the settings above</span></div>
+              </fieldset>
+              <fieldset id="email_alerts_alerts">
+                <legend>Available Alerts</legend>
+                <div class="checkboxes">
+
+                  <label for="email_alerts_alerts_Node was auto-failovered">
+                    <input type="checkbox" id="email_alerts_alerts_auto_failover_node" value="auto_failover_node" checked="checked">
+                    <span>Node was auto-failovered</span>
+                  </label>
+
+                  <label for="email_alerts_alerts_Maximum number of auto-failovered nodes was reached">
+                    <input type="checkbox" id="email_alerts_alerts_auto_failover_maximum_reached" value="auto_failover_maximum_reached" checked="checked">
+                    <span>Maximum number of auto-failovered nodes was reached</span>
+                  </label>
+
+                  <label for="email_alerts_alerts_Node wasn't auto-failovered as other nodes are down at the same time">
+                    <input type="checkbox" id="email_alerts_alerts_auto_failover_other_nodes_down" value="auto_failover_other_nodes_down" checked="checked">
+                    <span>Node wasn't auto-failovered as other nodes are down at the same time</span>
+                  </label>
+
+                  <label for="email_alerts_alerts_Node wasn't auto-failovered as the cluster was too small (less than 3 nodes)">
+                    <input type="checkbox" id="email_alerts_alerts_auto_failover_cluster_too_small" value="auto_failover_cluster_too_small" checked="checked">
+                    <span>Node wasn't auto-failovered as the cluster was too small (less than 3 nodes)</span>
+                  </label>
+
+                </div>
+              </fieldset>
+              <div class="save_cancel">
+                <button class="save_button float_right" type="button" disabled="disabled">
+                  Save
+                </button>
+              </div>
+            </div>
+            <div id="compaction_container" style="display: none; "><form>
+                <fieldset class="auto_compaction persistent-only">
+                  <legend>Auto-Compaction</legend>
+                  <p>The Auto-Compaction daemon compacts databases and their respective
+                    view indexes when all the condition parameters are satisfied.</p>
+                  <ul>
+                    <li class="database">
+                      <span class="toggle">
+                        <input type="checkbox" id="48099acb-df16-4e1e-9949-2aaccfeb9e41" class="check-for-databaseFragmentationThreshold"> <label for="48099acb-df16-4e1e-9949-2aaccfeb9e41">Database Fragmentation</label>
+                      </span>
+                      <span class="input_wrapper">
+                        <input id="decaebe7-bb14-4c1f-9bb1-70ceb7fb2e43" name="databaseFragmentationThreshold" type="number">%
+                      </span>
+                      <label for="decaebe7-bb14-4c1f-9bb1-70ceb7fb2e43">
+                        <span>at which point compaction is triggered</span>
+                      </label>
+                      <div class="error-container err-databaseFragmentationThreshold"></div>
+                    </li>
+                    <li class="view">
+                      <span class="toggle">
+                        <input type="checkbox" id="0a2cb7a3-84b7-4822-bf32-87d3e192926a" class="check-for-viewFragmentationThreshold"> <label for="0a2cb7a3-84b7-4822-bf32-87d3e192926a">View Fragmentation</label>
+                      </span>
+                      <span class="input_wrapper">
+                        <input id="8e49a092-3108-46ed-b5c3-9b95c4ceda6f" name="viewFragmentationThreshold" type="number">%
+                      </span>
+                      <label for="8e49a092-3108-46ed-b5c3-9b95c4ceda6f">
+                        <span>at which point compaction is triggered</span>
+                      </label>
+                      <div class="error-container err-viewFragmentationThreshold"></div>
+                    </li>
+                    <li class="period">
+                      <span class="toggle">
+                        <input type="checkbox" id="f5962927-16af-4eb6-802c-86fe6c3a238d" class="check-for-allowedTimePeriod"> <label for="f5962927-16af-4eb6-802c-86fe6c3a238d">Time Period</label>
+                      </span>
+                      <span class="input_wrapper">
+                        <input id="8a786bbb-e9df-46d4-8733-2993ae0c2b95" name="allowedTimePeriod[fromHour]" type="number" min="0" max="23" placeholder="HH">:<input name="allowedTimePeriod[fromMinute]" type="number" min="0" max="59" placeholder="MM">
+                        - <input name="allowedTimePeriod[toHour]" type="number" min="0" max="23" placeholder="HH">:<input name="allowedTimePeriod[toMinute]" type="number" min="0" max="59" placeholder="MM">
+                      </span>
+                      <label for="8a786bbb-e9df-46d4-8733-2993ae0c2b95">
+                        <span>during which compaction is allowed</span>
+                      </label>
+                      <div class="error-container err-allowedTimePeriod"></div>
+                      <div class="error-container err-allowedTimePeriod-fromHour-"></div>
+                      <div class="error-container err-allowedTimePeriod-fromMinute-"></div>
+                      <div class="error-container err-allowedTimePeriod-toHour-"></div>
+                      <div class="error-container err-allowedTimePeriod-toMinute-"></div>
+                      <ul>
+                        <li>
+                          <input type="hidden" name="allowedTimePeriod[abortOutside]" value="false">
+                          <input id="302bc9f8-0a98-4963-85a4-5670ab8f1c25" type="checkbox" name="allowedTimePeriod[abortOutside]" value="true">
+                          <label for="302bc9f8-0a98-4963-85a4-5670ab8f1c25">Abort compaction if run time exceeds the above period</label>
+                          <div class="error-container err-allowedTimePeriod-abortOutside-"></div>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <input type="hidden" name="parallelDBAndViewCompaction" value="false">
+                      <input id="f6fb6488-c05a-4baa-88f7-27032da6600b" type="checkbox" name="parallelDBAndViewCompaction" value="true">
+                      <label for="f6fb6488-c05a-4baa-88f7-27032da6600b">Process Database and View compaction in parallel</label>
+                      <div class="error-container err-parallelDBAndViewCompaction"></div>
+                    </li>
+                  </ul>
+                </fieldset> <!-- .auto_compaction -->
+                <div class="save_cancel">
+                  <button class="save_button float_right" type="submit">
+                    Save
+                  </button>
+                </div>
+            </form></div>
+          </div>
+        </div>
+      </div>
+    </script>
+
+
+    <script type="text/template" id="login-tpl">
+      <form id="login_form" class="auth_form" action="#/login/">
+        <div class="form-error" id="login-failed">Login failed. Please try again.</div>
+        <fieldset>
+          <ul>
+            <li>
+              <label for="login_inp">Username:</label>
+              <input type="text" name="username" id="login_inp" class="inp" />
+            </li>
+            <li>
+              <label for="password2_inp">Password:</label>
+              <input type="password" name="password" id="password2_inp" class="inp" />
+            </li>
+          </ul>
+          <input type="submit" value="Sign In" class="submit" />
+        </fieldset>
+      </form>
+    </script>
+
+
+  </body>
+
+<script src="/js2/libs/base64.js"></script>
+<script src="/js2/libs/jquery-1.7.1.min.js"></script>
+<script src="/js2/libs/underscore-1.1.6.js"></script>
+<!--
+<script src="/js2/libs/ember-0.9.2.js"></script>
+-->
+<script src="/js2/libs/ember.js"></script>
+<script src="/js2/libs/sproutcore-routing.js"></script>
+<script src="/js2/libs/router.js"></script>
+
+<script src="/js2/couchbase.utils.js"></script>
+<script src="/js2/couchbase.data.js"></script>
+<script src="/js2/couchbase.views.js"></script>
+<script src="/js2/couchbase.app.js"></script>
+<!--
+<script src="/js2/couchbase.bootstrap.js"></script>
+-->
+</html>

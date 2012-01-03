@@ -1,3 +1,4 @@
+/*
 // This is the main layout as a template
 var MainView = View.extend({
   container: '#global_wrapper',
@@ -27,28 +28,6 @@ var AppView = View.extend({
 
 });
 
-
-var LogView = AppView.extend({
-
-  name: 'logs',
-  template: 'logs',
-
-  load: function() {
-    this.interval = setInterval(function() { LogView.fetchLogs(); }, 5000);
-    this.fetchLogs();
-  },
-
-  unload: function() {
-    clearInterval(this.interval);
-  },
-
-  fetchLogs: function() {
-    $.get('/logs', function(data) {
-      LogView.data.logs = data.list.reverse();
-      LogView.render();
-    });
-  }
-});
 
 var GuageView = View.extend({template: 'gauge'});
 var RamOverView = GuageView.extend({data: {
@@ -105,12 +84,91 @@ var ClusterView = AppView.extend({
     this.render();
   }
 });
+*/
+
+// NOTE vmx: here is where the Ember part starts
 
 
-var LoginView = AppView.extend({name: 'login', template: 'login'});
-var FourOhFourView = AppView.extend({template: 'fourohfour'});
-var ServersView = AppView.extend({name: 'servers', template: 'servers'});
-var BucketsView = AppView.extend({name: 'buckets', template: 'buckets'});
-var ViewsView = AppView.extend({name: 'views', template: 'views'});
-var SettingsView = AppView.extend({name: 'settings', template: 'settings'});
+// NOTE vmx: I'm not happy doing this ugly document.ready wrapping,
+// but I just want to have it work in Firefox for now :)
+$(document).ready(function() {
 
+// This is the main layout as a template
+var MainEmberView = Ember.View.create({
+  container: '#global_wrapper',
+  templateName: 'foomain-tpl'
+});
+MainEmberView.appendTo('#global_wrapper');
+
+window.EmberApp = Ember.Application.create({
+  rootElement: '#global_wrapper'
+});
+
+
+EmberApp.Views = {};
+
+EmberApp.Views.ViewsView = Ember.ViewState.create({
+  view: Ember.View.create({
+    templateName: 'views-tpl',
+    bucketsBinding: Ember.Binding.oneWay('Data.buckets.names')
+  })
+});
+
+EmberApp.Views.NotFoundView = Ember.ViewState.create({
+  view: Ember.View.create({
+    templateName: 'fourohfour-tpl'
+  })
+});
+
+EmberApp.Views.LogsView = Ember.ViewState.create({
+  interval: null,
+
+  view: Ember.View.create({
+    templateName: 'logs-tpl',
+    logsBinding: Ember.Binding.oneWay('Data.logs.data')
+  }),
+  enter: function(stateManager) {
+    Data.fetch.logs();
+    this.interval = setInterval(function() { Data.fetch.logs(); }, 5000);
+
+    this._super(stateManager);
+  },
+  exit: function(stateManager) {
+    clearInterval(this.interval);
+
+    this._super(stateManager);
+  }
+});
+
+
+EmberApp.Views.ViewsManager = Ember.StateManager.create({
+  rootElement: '#content',
+  views: EmberApp.Views.ViewsView,
+  notfound: EmberApp.Views.NotFoundView,
+  logs: EmberApp.Views.LogsView
+});
+
+
+EmberApp.router = Ember.Object.create({
+  initRouter: function() {
+    SC.routes.add('/:page/', EmberApp, this.pages);
+    SC.routes.add('*url', EmberApp, this.home);
+    return SC.routes;
+  },
+  pages: function(params) {
+    // NOTE vmx: Not sure if .get() works cross browser
+    if (EmberApp.Views.ViewsManager.get(params.page) !== undefined) {
+      return EmberApp.Views.ViewsManager.goToState(params.page);
+    }
+    return EmberApp.Views.ViewsManager.goToState('notfound');
+  },
+  home: function(params) {
+    // NOTE vmx: Should of course be the start page. This is only for
+    // demo purpose
+    return EmberApp.Views.ViewsManager.goToState('logs');
+  }
+});
+
+EmberApp.router.initRouter();
+
+});
