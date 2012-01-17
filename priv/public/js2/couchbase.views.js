@@ -89,19 +89,17 @@ var ClusterView = AppView.extend({
 // NOTE vmx: here is where the Ember part starts
 
 
-// NOTE vmx: I'm not happy doing this ugly document.ready wrapping,
-// but I just want to have it work in Firefox for now :)
-$(document).ready(function() {
-
 // This is the main layout as a template
 var MainEmberView = Ember.View.create({
   container: '#global_wrapper',
   templateName: 'foomain-tpl'
 });
-MainEmberView.appendTo('#global_wrapper');
 
 window.EmberApp = Ember.Application.create({
-  rootElement: '#global_wrapper'
+  rootElement: '#global_wrapper',
+  ready: function() {
+    MainEmberView.appendTo('#global_wrapper');
+  }
 });
 
 
@@ -170,5 +168,3 @@ EmberApp.router = Ember.Object.create({
 });
 
 EmberApp.router.initRouter();
-
-});
