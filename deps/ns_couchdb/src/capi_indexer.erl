@@ -91,6 +91,7 @@ run_on_subset_according_to_stats(Bucket) ->
             {ok, Config} = ns_bucket:get_bucket(?b2l(Bucket)),
             NumVBuckets = proplists:get_value(num_vbuckets, Config, []),
             {ok, N} = orddict:find(curr_items_tot, Stats#stat_entry.values),
+?log_info("vmx: capi_indexer: run_on_subset_according_to_stats: curr_items_tot > NumVbuckets * ?DEV_MULTIPLE: ~100000p > ~100000p * ~100000p: ~100000p", [N, NumVbuckets, ?DEV_MULTIPLE, (N > NumVBuckets * ?DEV_MULTIPLE)]),
             N > NumVBuckets * ?DEV_MULTIPLE;
         _Error ->
             {error, no_stats}
