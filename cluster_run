@@ -25,15 +25,19 @@ PREFIX = config['prefix']
 
 def setup_path():
     def ebin_search(path):
-        dirs = os.walk(path)
+        print("vmx: cluster_run: ebin_search: path: {}".format(path))
+        dirs = list(os.walk(path))
+        print("vmx: cluster_run: ebin_search: dirs: {}".format(dirs))
         ebins = []
 
         for d, _, _ in dirs:
             if os.path.basename(d) == "ebin":
                 ebins.append(d)
 
+        print("vmx: cluster_run: ebin_search: ebins: {}".format(ebins))
         return ebins
 
+    print("vmx: cluster_run: prefix: {}".format(PREFIX))
     path = ebin_search(".")
     couchpath = ebin_search("{0}/lib/couchdb/erlang/lib".format(PREFIX))
     couch_plugins = ebin_search("{0}/lib/couchdb/plugins".format(PREFIX))
